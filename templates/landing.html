@@ -1,0 +1,894 @@
+{% load static %} {% load i18n %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LGU HR Management System</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicons/lgu-logo.jpg' %}">
+    <link rel="icon" type="image/jpeg" sizes="32x32" href="{% static 'favicons/lgu-logo.jpg' %}">
+    <link rel="icon" type="image/jpeg" sizes="16x16" href="{% static 'favicons/lgu-logo.jpg' %}">
+    <link rel="stylesheet" href="{% static 'build/css/style.min.css' %}">
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      :root {
+        --primary-orange: #ff6b35;
+        --secondary-orange: #ff8c42;
+        --light-orange: #fff5f0;
+        --dark-gray: #2b2d42;
+        --medium-gray: #8d99ae;
+        --light-gray: #edf2f4;
+      }
+      
+      body { 
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        color: var(--dark-gray);
+        line-height: 1.6;
+      }
+      
+      /* Navigation */
+      .landing-nav {
+        background: rgba(255, 255, 255, 0.98);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        backdrop-filter: blur(10px);
+      }
+      
+      .nav-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 2rem;
+      }
+      
+      .logo-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 700;
+        font-size: 1.25rem;
+        color: var(--dark-gray);
+        text-decoration: none;
+      }
+      
+      .logo-brand img {
+        height: 48px;
+        width: 48px;
+        object-fit: contain;
+        border-radius: 8px;
+      }
+      
+      .nav-links {
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+      }
+      
+      .nav-links a {
+        color: var(--dark-gray);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s;
+      }
+      
+      .nav-links a:hover {
+        color: var(--primary-orange);
+      }
+      
+      .btn-login {
+        background: var(--primary-orange);
+        color: white;
+        padding: 0.65rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+      }
+      
+      .btn-login:hover {
+        background: var(--secondary-orange);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+      }
+      
+      /* Hero Section */
+      .hero-section {
+        background: linear-gradient(135deg, #fff 0%, var(--light-orange) 100%);
+        padding: 6rem 2rem 4rem;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 50%;
+        height: 100%;
+        background: radial-gradient(circle at top right, rgba(255, 107, 53, 0.1), transparent);
+        pointer-events: none;
+      }
+      
+      .hero-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        align-items: center;
+      }
+      
+      .hero-content {
+        z-index: 1;
+      }
+      
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, var(--primary-orange), var(--secondary-orange));
+        color: white;
+        padding: 0.5rem 1.25rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+      }
+      
+      .hero-title {
+        font-size: 3.25rem;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 1.25rem;
+        color: var(--dark-gray);
+      }
+      
+      .hero-title .highlight {
+        color: var(--primary-orange);
+        position: relative;
+      }
+      
+      .hero-description {
+        font-size: 1.25rem;
+        color: var(--medium-gray);
+        margin-bottom: 2.5rem;
+        line-height: 1.7;
+      }
+      
+      .hero-cta-group {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+      
+      .btn-primary {
+        background: var(--primary-orange);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: none;
+        box-shadow: 0 8px 20px rgba(255, 107, 53, 0.3);
+      }
+      
+      .btn-primary:hover {
+        background: var(--secondary-orange);
+        transform: translateY(-3px);
+        box-shadow: 0 12px 28px rgba(255, 107, 53, 0.4);
+      }
+      
+      .btn-secondary {
+        background: white;
+        color: var(--primary-orange);
+        padding: 1rem 2rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s;
+        border: 2px solid var(--primary-orange);
+      }
+      
+      .btn-secondary:hover {
+        background: var(--light-orange);
+      }
+      
+      .hero-visual {
+        position: relative;
+      }
+      
+      .hero-image {
+        background: white;
+        padding: 2rem;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        border: 3px solid var(--primary-orange);
+      }
+      
+      .hero-image img {
+        width: 100%;
+        border-radius: 10px;
+      }
+      
+      /* Features Section */
+      .features-section {
+        padding: 5rem 2rem;
+        background: white;
+      }
+      
+      .section-header {
+        text-align: center;
+        max-width: 800px;
+        margin: 0 auto 4rem;
+      }
+      
+      .section-title {
+        font-size: 2.75rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        color: var(--dark-gray);
+      }
+      
+      .section-subtitle {
+        font-size: 1.2rem;
+        color: var(--medium-gray);
+        line-height: 1.7;
+      }
+      
+      .features-grid {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+      }
+      
+      .feature-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 16px;
+        border: 2px solid var(--light-gray);
+        transition: all 0.3s;
+        position: relative;
+      }
+      
+      .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-orange), var(--secondary-orange));
+        border-radius: 16px 16px 0 0;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      
+      .feature-card:hover {
+        border-color: var(--primary-orange);
+        box-shadow: 0 10px 30px rgba(255, 107, 53, 0.15);
+        transform: translateY(-5px);
+      }
+      
+      .feature-card:hover::before {
+        opacity: 1;
+      }
+      
+      .feature-icon {
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(135deg, var(--primary-orange), var(--secondary-orange));
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.75rem;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 4px 15px rgba(255, 107, 53, 0.25);
+      }
+      
+      .feature-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        color: var(--dark-gray);
+      }
+      
+      .feature-description {
+        color: var(--medium-gray);
+        line-height: 1.6;
+      }
+      
+      /* Jobs Section */
+      .jobs-section {
+        padding: 5rem 2rem;
+        background: linear-gradient(135deg, var(--light-orange), #fff);
+      }
+      
+      .jobs-container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      
+      .jobs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(1fr, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+        max-height: 350px;
+        overflow-y: auto;
+        padding: 0.75rem;
+        border-radius: 12px;
+        background: white;
+      }
+      
+      .job-card {
+        background: #fafafa;
+        padding: 1rem;
+        border-radius: 10px;
+        border: 1px solid var(--light-gray);
+        transition: all 0.3s;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        min-height: 0;
+      }
+      
+      .job-card:hover {
+        border-color: var(--primary-orange);
+        box-shadow: 0 4px 12px rgba(255, 107, 53, 0.1);
+        background: white;
+        transform: translateX(4px);
+      }
+      
+      .job-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--dark-gray);
+        margin: 0;
+      }
+      
+      .job-meta {
+        display: flex;
+        gap: 0.8rem;
+        font-size: 0.8rem;
+        color: var(--medium-gray);
+        flex-wrap: wrap;
+      }
+      
+      .job-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+      }
+      
+      .job-description {
+        color: var(--medium-gray);
+        line-height: 1.4;
+        font-size: 0.85rem;
+        flex-grow: 1;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        margin: 0.25rem 0;
+      }
+      
+      .job-positions {
+        background: var(--light-orange);
+        padding: 0.4rem 0.6rem;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--primary-orange);
+        text-align: center;
+      }
+      
+      .jobs-empty {
+        text-align: center;
+        padding: 3rem;
+        background: white;
+        border-radius: 16px;
+        border: 2px dashed var(--light-gray);
+      }
+      
+      .jobs-empty p {
+        color: var(--medium-gray);
+        font-size: 1.1rem;
+      }
+      
+      .jobs-cta {
+        text-align: center;
+        padding: 2rem;
+        border-radius: 16px;
+      }
+      
+      /* Stats Section */
+      .stats-section {
+        background: linear-gradient(135deg, var(--primary-orange), var(--secondary-orange));
+        padding: 4rem 2rem;
+        color: white;
+      }
+      
+      .stats-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 3rem;
+        text-align: center;
+      }
+      
+      .stat-item h3 {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+      }
+      
+      .stat-item p {
+        font-size: 1.1rem;
+        opacity: 0.95;
+      }
+      
+      /* CTA Section */
+      .cta-section {
+        padding: 5rem 2rem;
+        background: var(--light-orange);
+        text-align: center;
+      }
+      
+      .cta-container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      
+      .cta-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 1.5rem;
+        color: var(--dark-gray);
+      }
+      
+      .cta-description {
+        font-size: 1.2rem;
+        color: var(--medium-gray);
+        margin-bottom: 2.5rem;
+      }
+      
+      /* Footer */
+      .landing-footer {
+        background: var(--dark-gray);
+        color: white;
+        padding: 3rem 2rem 2rem;
+      }
+      
+      .footer-container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      
+      .footer-content {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 3rem;
+        margin-bottom: 3rem;
+      }
+      
+      .footer-brand h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: var(--primary-orange);
+      }
+      
+      .footer-brand p {
+        color: var(--light-gray);
+        line-height: 1.7;
+      }
+      
+      .footer-links h4 {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+        color: var(--primary-orange);
+      }
+      
+      .footer-links ul {
+        list-style: none;
+      }
+      
+      .footer-links ul li {
+        margin-bottom: 0.75rem;
+      }
+      
+      .footer-links a {
+        color: var(--light-gray);
+        text-decoration: none;
+        transition: color 0.3s;
+      }
+      
+      .footer-links a:hover {
+        color: var(--primary-orange);
+      }
+      
+      .footer-bottom {
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 2rem;
+        text-align: center;
+        color: var(--light-gray);
+      }
+      
+      /* Responsive */
+      @media (max-width: 968px) {
+        .hero-container {
+          grid-template-columns: 1fr;
+          gap: 3rem;
+        }
+        
+        .hero-title {
+          font-size: 2.5rem;
+        }
+        
+        .footer-content {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      
+      @media (max-width: 768px) {
+        .nav-links {
+          gap: 1rem;
+        }
+        
+        .nav-links a:not(.btn-login) {
+          display: none;
+        }
+        
+        .hero-section {
+          padding: 4rem 1.5rem 3rem;
+        }
+        
+        .hero-title {
+          font-size: 2rem;
+        }
+        
+        .hero-description {
+          font-size: 1.1rem;
+        }
+        
+        .section-title {
+          font-size: 2rem;
+        }
+        
+        .features-grid {
+          grid-template-columns: 1fr;
+        }
+        
+        .footer-content {
+          grid-template-columns: 1fr;
+          gap: 2rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="landing-nav">
+      <div class="nav-container">
+        <a href="{% url 'landing' %}" class="logo-brand">
+          <img src="{% static 'images/ui/lgu-logo.jpg' %}" alt="LGU Logo">
+          <span>LGU HR System</span>
+        </a>
+        <div class="nav-links">
+          <a href="#features">{% trans "Features" %}</a>
+          <a href="#jobs">{% trans "Jobs" %}</a>
+          <a href="#about">{% trans "About" %}</a>
+          <a href="#contact">{% trans "Contact" %}</a>
+          <a href="{% url 'login' %}" class="btn-login">{% trans "Login" %}</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-container">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <span>HR · Payroll · Attendance</span>
+          </div>
+          <h1 class="hero-title">
+            Transform Your <span class="highlight">Workforce Management</span> Today
+          </h1>
+          <p class="hero-description">
+            The complete HR solution for modern organizations. Manage employees, payroll, attendance, leave, recruitment, and more — all in one powerful, integrated platform.
+          </p>
+          <div class="hero-cta-group">
+            <a href="{% url 'login' %}" class="btn-primary">
+              {% trans "Get Started" %} →
+            </a>
+            <a href="#features" class="btn-secondary">
+              {% trans "Learn More" %}
+            </a>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="hero-image">
+            <img src="{% static 'images/ui/lgu-logo.jpg' %}" alt="HR System Dashboard" onerror="this.style.display='none'">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features-section">
+      <div class="section-header">
+        <h2 class="section-title">Everything You Need for HR Excellence</h2>
+        <p class="section-subtitle">
+          Comprehensive tools to streamline your HR operations and empower your workforce
+        </p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">👥</div>
+          <h3 class="feature-title">Employee Management</h3>
+          <p class="feature-description">
+            Centralize all employee data, records, and documents in one secure location. Easy search, export, and comprehensive profile management.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⏰</div>
+          <h3 class="feature-title">Attendance & Time Tracking</h3>
+          <p class="feature-description">
+            Monitor attendance with biometric integration, geofencing check-ins, shift management, and accurate time tracking for all employees.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌴</div>
+          <h3 class="feature-title">Leave Management</h3>
+          <p class="feature-description">
+            Streamline leave requests and approvals. Automatic balance calculations, customizable leave types, and comprehensive leave history.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💰</div>
+          <h3 class="feature-title">Payroll Processing</h3>
+          <p class="feature-description">
+            Automated payroll with allowances, deductions, tax calculations. Generate payslips, statutory reports, and ensure compliance.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3 class="feature-title">Recruitment & Onboarding</h3>
+          <p class="feature-description">
+            Post job openings, track candidates, conduct interviews, and onboard new hires with automated checklists and document collection.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📋</div>
+          <h3 class="feature-title">Offboarding & Exit</h3>
+          <p class="feature-description">
+            Manage employee exits professionally with automated workflows for asset returns, clearances, and final settlement processing.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔗</div>
+          <h3 class="feature-title">Integrations</h3>
+          <p class="feature-description">
+            Connect with biometric devices, LDAP for authentication, Outlook for email, and other third-party systems seamlessly.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3 class="feature-title">Reports & Analytics</h3>
+          <p class="feature-description">
+            Access pre-built reports and create custom analytics for payroll costs, headcount, attendance trends, and performance metrics.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📁</div>
+          <h3 class="feature-title">Document Management</h3>
+          <p class="feature-description">
+            Store, organize, and manage all HR documents securely. Automated notifications and compliance tracking built-in.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Open Job Listings Section -->
+    <section id="jobs" class="jobs-section">
+      <div class="jobs-container">
+        <div class="section-header">
+          <h2 class="section-title">Open Job Listings</h2>
+          <p class="section-subtitle">
+            Join our growing team and explore exciting career opportunities with us
+          </p>
+        </div>
+        <div class="jobs-grid" id="jobsGrid">
+          <div class="jobs-empty">
+            <p>{% trans "Loading job listings..." %}</p>
+          </div>
+        </div>
+        <div class="jobs-cta">
+          <a href="{% url 'open-recruitments' %}" class="btn-primary">
+            {% trans "View All Job Listings" %} →
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+      <div class="stats-container">
+        <div class="stat-item">
+          <h3>99.9%</h3>
+          <p>System Uptime</p>
+        </div>
+        <div class="stat-item">
+          <h3>50%</h3>
+          <p>Time Saved on HR Tasks</p>
+        </div>
+        <div class="stat-item">
+          <h3>100%</h3>
+          <p>Payroll Accuracy</p>
+        </div>
+        <div class="stat-item">
+          <h3>24/7</h3>
+          <p>Employee Access</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="features-section" style="padding: 4rem 2rem; background: var(--light-gray);">
+      <div class="section-header">
+        <h2 class="section-title">Built for Modern Organizations</h2>
+        <p class="section-subtitle">
+          A comprehensive, integrated HR platform designed with clarity, reliability, and ease of use in mind. 
+          From small teams to large enterprises, we provide the tools you need to manage your most valuable asset — your people.
+        </p>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section id="contact" class="cta-section">
+      <div class="cta-container">
+        <h2 class="cta-title">Ready to Transform Your HR Operations?</h2>
+        <p class="cta-description">
+          Join organizations that trust our platform to streamline their HR processes and empower their workforce.
+        </p>
+        <a href="{% url 'login' %}" class="btn-primary" style="font-size: 1.15rem; padding: 1.15rem 2.5rem;">
+          {% trans "Access the System" %} →
+        </a>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+      <div class="footer-container">
+        <div class="footer-content">
+          <div class="footer-brand">
+            <h3>LGU HR System</h3>
+            <p>
+              Comprehensive human resource management solution designed to streamline your HR operations, 
+              from recruitment to retirement. Built with efficiency and reliability in mind.
+            </p>
+          </div>
+          <div class="footer-links">
+            <h4>Features</h4>
+            <ul>
+              <li><a href="#features">Employee Management</a></li>
+              <li><a href="#features">Attendance Tracking</a></li>
+              <li><a href="#features">Payroll Processing</a></li>
+              <li><a href="#features">Leave Management</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h4>Resources</h4>
+            <ul>
+              <li><a href="#about">About</a></li>
+              <li><a href="#features">Documentation</a></li>
+              <li><a href="#contact">Support</a></li>
+              <li><a href="{% url 'login' %}">Login</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h4>Contact</h4>
+            <ul>
+              <li><a href="#contact">Get in Touch</a></li>
+              <li><a href="#contact">Request Demo</a></li>
+              <li><a href="#contact">Help Center</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>&copy; {% now "Y" %} LGU HR Management System. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="{% static 'build/js/web.frontend.min.js' %}"></script>
+    <script>
+      // Load and display open job listings
+      document.addEventListener('DOMContentLoaded', function() {
+        const jobsGrid = document.getElementById('jobsGrid');
+        
+        fetch('/recruitment/api/open-recruitments')
+          .then(response => response.json())
+          .then(data => {
+            const jobs = data.jobs || [];
+            
+            if (jobs.length === 0) {
+              jobsGrid.innerHTML = `
+                <div class="jobs-empty" style="grid-column: 1 / -1;">
+                  <p>{% trans "No open positions available at the moment. Please check back soon!" %}</p>
+                  <a href="{% url 'open-recruitments' %}" class="btn-primary" style="margin-top: 1rem;">
+                    {% trans "View All Positions" %} →
+                  </a>
+                </div>
+              `;
+            } else {
+              jobsGrid.innerHTML = jobs.map(job => `
+                <div class="job-card">
+                  <h3 class="job-title">${job.title || 'Job Opening'}</h3>
+                  <div class="job-meta">
+                    <div class="job-meta-item">
+                      <span>🏢</span>
+                      <span>${job.company || 'Our Company'}</span>
+                    </div>
+                    <div class="job-meta-item">
+                      <span>📍</span>
+                      <span>${job.positions || 1} Opening(s)</span>
+                    </div>
+                  </div>
+                  <div class="job-description">
+                    ${job.description ? job.description.replace(/<[^>]*>/g, '').substring(0, 80) + '...' : 'Exciting opportunity to join our growing team.'}
+                  </div>
+                  <div class="job-positions">
+                    Apply Now
+                  </div>
+                </div>
+              `).join('');
+              
+              // Add click handler to all job cards
+              document.querySelectorAll('.job-card').forEach(card => {
+                card.addEventListener('click', function() {
+                  window.location.href = '{% url "application-form" %}';
+                });
+              });
+              
+              // Make cards clickable with pointer cursor
+              document.querySelectorAll('.job-card').forEach(card => {
+                card.style.cursor = 'pointer';
+              });
+            }
+          })
+          .catch(err => {
+            console.error('Error loading jobs:', err);
+            jobsGrid.innerHTML = `
+              <div class="jobs-empty" style="grid-column: 1 / -1;">
+                <p>{% trans "Explore our current job opportunities" %}</p>
+                <a href="{% url 'open-recruitments' %}" class="btn-primary" style="margin-top: 1rem;">
+                  {% trans "View All Positions" %} →
+                </a>
+              </div>
+            `;
+          });
+      });
+    </script>
+  </body>
+</html>

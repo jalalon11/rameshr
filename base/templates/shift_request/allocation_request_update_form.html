@@ -1,0 +1,4 @@
+{% load i18n %} {% load static %}
+<form hx-post="{% url 'shift-allocation-request-update' form.instance.id %}" hx-target="#shiftRequestModalUpdateBody">
+    {{form.as_p}}
+</form>

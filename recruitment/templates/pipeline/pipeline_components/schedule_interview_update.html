@@ -1,0 +1,50 @@
+{% load i18n %}
+<form
+    hx-post='{% url "edit-interview" interview_id %}?view={{view}}'
+    hx-target="#createTarget"
+    hx-encoding="multipart/form-data"
+    id="skillform"
+>
+    {{form.as_p}}
+</form>
+<script>
+    $("#skillform .col-md-6").toggleClass("col-md-6");
+    $(document).ready(function () {
+        const $candidateSelect = $("[name=candidate_id]");
+        const $managerSelect = $("[name=employee_id]");
+        const selectedManagers = $managerSelect.val();
+
+        function fetchManagers(candidateId, selected = null) {
+            if (!candidateId) return;
+
+            $.ajax({
+                url: '{% url "get_managers" %}',
+                method: "GET",
+                data: { cand_id: candidateId },
+                success: function (data) {
+                    $managerSelect.empty();
+                    $.each(data.employees, function (key, value) {
+                        $managerSelect.append(
+                            $("<option>", {
+                                value: key,
+                                text: value,
+                            })
+                        );
+                    });
+
+                    if (selected) {
+                        $managerSelect.val(selected);
+                    }
+                },
+            });
+        }
+
+        // Initial load
+        fetchManagers($candidateSelect.val(), selectedManagers);
+
+        // On candidate change
+        $candidateSelect.on("change", function () {
+            fetchManagers(this.value, $managerSelect.val());
+        });
+    });
+</script>
