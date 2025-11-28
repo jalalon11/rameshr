@@ -146,6 +146,17 @@
                                 {% include "attendance/components/in_out_component.html" %}
                             </div>
                             <!-- End of check in/out button in nav bar -->
+                            <script>
+                                // Poll attendance status every 10 seconds to update UI after automatic check-out
+                                setInterval(function() {
+                                    if ($('#attendance-activity-container').length && typeof htmx !== 'undefined') {
+                                        htmx.ajax('GET', '{% url "check-status" %}', {
+                                            target: '#attendance-activity-container',
+                                            swap: 'innerHTML'
+                                        });
+                                    }
+                                }, 10000); // 10 seconds
+                            </script>
                         {% endif %}
 
                         {% if request.user|any_permission:'base' or perms.attendance.view_attendancevalidationcondition %}

@@ -60,9 +60,13 @@ class AttendanceMiddleware(MiddlewareMixin):
                     if shift_schedule.is_night_shift:
                         date += timedelta(days=1)
 
-                    combined_datetime = timezone.make_aware(
-                        datetime.combine(date, shift_schedule.auto_punch_out_time)
-                    )
+                    # Create naive datetime and make it aware in the local timezone
+                    combined_datetime = datetime.combine(date, shift_schedule.auto_punch_out_time)
+                    
+                    # Make timezone-aware using Django's timezone utilities
+                    combined_datetime = timezone.make_aware(combined_datetime, timezone.get_current_timezone())
+                    
+                    # Get current time (in UTC)
                     current_time = timezone.now()
 
                     if combined_datetime < current_time:
@@ -76,4 +80,4 @@ class AttendanceMiddleware(MiddlewareMixin):
                                 )
                             )
                         except Exception as e:
-                            print(f"{e}")
+                            print(f"Auto checkout error: {e}")

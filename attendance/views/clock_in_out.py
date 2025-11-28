@@ -13,6 +13,7 @@ from datetime import date, datetime, timedelta
 from django.contrib import messages
 from django.db.models import Q
 from django.http import HttpResponse
+from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
 
 from attendance.methods.utils import (
@@ -598,3 +599,12 @@ def clock_out(request):
     else:
         messages.error(request, _("Check in/Check out feature is not enabled."))
         return HttpResponse("<script>location.reload();</script>")
+
+
+@login_required
+def check_status(request):
+    """
+    Check current attendance status and return appropriate button component.
+    Used for periodic polling to update UI after automatic check-out.
+    """
+    return render(request, "attendance/components/in_out_component.html")

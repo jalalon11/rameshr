@@ -143,6 +143,7 @@ urlpatterns = [
     ),
     path("clock-in", attendance.views.clock_in_out.clock_in, name="clock-in"),
     path("clock-out", attendance.views.clock_in_out.clock_out, name="clock-out"),
+    path("check-status", attendance.views.clock_in_out.check_status, name="check-status"),
     path(
         "on-time-view/",
         views.on_time_view,
