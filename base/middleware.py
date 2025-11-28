@@ -76,7 +76,7 @@ class CompanyMiddleware:
             if company_id == "all":
                 text = "All companies"
             elif company_id == user_company_id:
-                text = "HRIS System"
+                text = "Human Resource Information System"
             else:
                 text = "Other Company"
 

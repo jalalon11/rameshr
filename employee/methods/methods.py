@@ -129,10 +129,12 @@ def convert_nan(field, dicts):
     This method is returns None or field value
     """
     field_value = dicts.get(field)
+    if field_value is None:
+        return None
     try:
         float(field_value)
         return None
-    except ValueError:
+    except (ValueError, TypeError):
         return field_value
 
 
@@ -233,7 +235,6 @@ def valid_import_file_headers(data_frame):
         "Shift",
         "Employee Type",
         "Reporting Manager",
-        "Company",
         "Location",
         "Date Joining",
         "Contract End Date",
@@ -285,7 +286,8 @@ def process_employee_records(data_frame):
         first_name = convert_nan("First Name", emp)
         last_name = convert_nan("Last Name", emp)
         gender = str(emp.get("Gender") or "").strip().lower()
-        company = convert_nan("Company", emp)
+        # Company is now auto-assigned, not required from import
+        company = convert_nan("Company", emp) if "Company" in emp else None
         basic_salary = convert_nan("Basic Salary", emp)
         salary_hour = convert_nan("Salary Hour", emp)
 
@@ -358,7 +360,7 @@ def process_employee_records(data_frame):
             )
             save = False
 
-        # Company validation
+        # Company validation (optional - only validate if provided in import)
         if company and company not in existing_companies:
             errors["Company Error"] = f"Company '{company}' does not exist."
             save = False
@@ -738,9 +740,10 @@ def create_contracts_in_thread(new_work_info_list, update_work_info_list):
     Contract.objects.bulk_create(contracts_list)
 
 
-def bulk_create_work_info_import(success_lists):
+def bulk_create_work_info_import(success_lists, request=None):
     """
     Bulk creation of employee work info instances based on the excel import of employees
+    Auto-assigns company from the logged-in user's company if not provided in import data
     """
     new_work_info_list = []
     update_work_info_list = []
@@ -752,7 +755,20 @@ def bulk_create_work_info_import(success_lists):
     work_types = set(row.get("Work Type") for row in success_lists)
     employee_types = set(row.get("Employee Type") for row in success_lists)
     shifts = set(row.get("Shift") for row in success_lists)
-    companies = set(row.get("Company") for row in success_lists)
+    
+    # Auto-assign company from logged-in user's company
+    default_company = None
+    if request and hasattr(request, 'user') and hasattr(request.user, 'employee_get'):
+        try:
+            default_company = request.user.employee_get.employee_work_info.company_id
+        except (AttributeError, Employee.DoesNotExist, EmployeeWorkInformation.DoesNotExist):
+            pass
+    
+    # If no default company from user, get the first company
+    if not default_company:
+        default_company = Company.objects.first()
+    
+    companies = set(row.get("Company") for row in success_lists if row.get("Company"))
 
     chunk_size = None if is_postgres else 999
     employee_qs = (
@@ -853,7 +869,8 @@ def bulk_create_work_info_import(success_lists):
             if reporting_manager in reporting_manager_dict:
                 reporting_manager_obj = reporting_manager_dict[reporting_manager]
 
-        company_obj = existing_companies.get(work_info.get("Company"))
+        # Use company from import data if provided, otherwise use default company
+        company_obj = existing_companies.get(work_info.get("Company")) if work_info.get("Company") else default_company
         location = work_info.get("Location")
 
         # Parsing dates and salary

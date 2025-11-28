@@ -2552,7 +2552,6 @@ def work_info_import_file(request):
             "Basic Salary",
             "Salary Hour",
             "Contract End Date",
-            "Company",
         ]
     )
 
@@ -2617,7 +2616,7 @@ def work_info_import(request):
                     bulk_create_work_types(success_list)
                     bulk_create_shifts(success_list)
                     bulk_create_employee_types(success_list)
-                    bulk_create_work_info_import(success_list)
+                    bulk_create_work_info_import(success_list, request)
                     thread = threading.Thread(
                         target=set_initial_password, args=(employees,)
                     )

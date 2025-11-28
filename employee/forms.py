@@ -538,7 +538,6 @@ excel_columns = [
     ("employee_work_info__basic_salary", trans("Basic Salary")),
     ("employee_work_info__salary_hour", trans("Salary Hour")),
     ("employee_work_info__contract_end_date", trans("Contract End Date")),
-    ("employee_work_info__company_id", trans("Company")),
     ("employee_bank_details__bank_name", trans("Bank Name")),
     ("employee_bank_details__branch", trans("Branch")),
     ("employee_bank_details__account_number", trans("Account Number")),
