@@ -113,7 +113,7 @@ def update_selected_company(request):
             if emp_company != company:
                 text = "Other Company"
                 if company_id == user_company:
-                    text = "Human Resource Information System"
+                    text = "HRIS"
                 company = {
                     "company": company.company,
                     "icon": company.icon.url,
@@ -133,7 +133,7 @@ def update_selected_company(request):
     if company_id == "all":
         text = "All companies"
     elif company_id == user_company:
-        text = "HRIS System"
+        text = "HRIS"
     else:
         text = "Other Company"
 
