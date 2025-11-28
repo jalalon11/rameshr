@@ -1167,7 +1167,6 @@ class EmployeeShiftScheduleUpdateForm(ModelForm):
         if apps.is_installed("attendance"):
             auto_punch_out_enabled = cleaned_data.get("is_auto_punch_out_enabled")
             auto_punch_out_time = cleaned_data.get("auto_punch_out_time")
-            end_time = cleaned_data.get("end_time")
 
             if auto_punch_out_enabled:
                 if not auto_punch_out_time:
@@ -1175,14 +1174,6 @@ class EmployeeShiftScheduleUpdateForm(ModelForm):
                         {
                             "auto_punch_out_time": _(
                                 "Automatic punch out time is required when automatic punch out is enabled."
-                            )
-                        }
-                    )
-                elif auto_punch_out_time < end_time:
-                    raise ValidationError(
-                        {
-                            "auto_punch_out_time": _(
-                                "Automatic punch out time cannot be earlier than the end time."
                             )
                         }
                     )
@@ -1253,22 +1244,12 @@ class EmployeeShiftScheduleForm(ModelForm):
         if apps.is_installed("attendance"):
             auto_punch_out_enabled = self.cleaned_data["is_auto_punch_out_enabled"]
             auto_punch_out_time = self.cleaned_data["auto_punch_out_time"]
-            end_time = self.cleaned_data["end_time"]
             if auto_punch_out_enabled:
                 if not auto_punch_out_time:
                     raise ValidationError(
                         {
                             "auto_punch_out_time": _(
                                 "Automatic punch out time is required when automatic punch out is enabled."
-                            )
-                        }
-                    )
-            if auto_punch_out_enabled and auto_punch_out_time and end_time:
-                if auto_punch_out_time < end_time:
-                    raise ValidationError(
-                        {
-                            "auto_punch_out_time": _(
-                                "Automatic punch out time cannot be earlier than the end time."
                             )
                         }
                     )
