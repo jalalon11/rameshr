@@ -264,6 +264,54 @@ def clock_in(request):
             minimum_hour, start_time_sec, end_time_sec = shift_schedule_today(
                 day=day, shift=shift
             )
+            
+            # Check if within break time (58 minutes after auto checkout)
+            from base.models import EmployeeShiftSchedule
+            schedule = EmployeeShiftSchedule.objects.filter(
+                day=day,
+                shift_id=shift,
+                is_auto_punch_out_enabled=True
+            ).first()
+            
+            if schedule and schedule.auto_punch_out_time:
+                # Get the last activity that was auto checked out
+                from django.utils import timezone as tz
+                last_activity = AttendanceActivity.objects.filter(
+                    employee_id=employee,
+                    attendance_date=attendance_date,
+                    clock_out__isnull=False
+                ).order_by('-clock_out_date', '-clock_out').first()
+                
+                if last_activity:
+                    # Combine auto checkout time with today's date
+                    auto_checkout_datetime = tz.make_aware(
+                        datetime.combine(date_today, schedule.auto_punch_out_time),
+                        tz.get_current_timezone()
+                    )
+                    
+                    # Calculate break end time (58 minutes after auto checkout)
+                    break_end_time = auto_checkout_datetime + timedelta(minutes=58)
+                    current_datetime = tz.now()
+                    
+                    # Check if employee clocked out around the auto checkout time (within 2 minutes)
+                    if last_activity.out_datetime:
+                        time_diff = abs((last_activity.out_datetime - auto_checkout_datetime).total_seconds())
+                        
+                        # If they were auto checked out (within 2 minutes of auto checkout time)
+                        # and current time is still within break period
+                        if time_diff <= 120 and current_datetime < break_end_time:
+                            remaining_minutes = int((break_end_time - current_datetime).total_seconds() / 60)
+                            return HttpResponse(
+                                f"""
+                                <button class="oh-btn oh-btn--secondary check-out" disabled
+                                    style="cursor: not-allowed; opacity: 0.6;">
+                                    <ion-icon class="oh-navbar__clock-icon mr-2"
+                                        name="cafe-outline"></ion-icon>
+                                    <span class="hr-check-in-out-text">Break Time - Check In Disabled ({remaining_minutes} min/s remaining)</span>
+                                </button>
+                                """
+                            )
+            
             if start_time_sec > end_time_sec:
                 # night shift
                 # ------------------

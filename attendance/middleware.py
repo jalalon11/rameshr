@@ -69,7 +69,10 @@ class AttendanceMiddleware(MiddlewareMixin):
                     # Get current time (in UTC)
                     current_time = timezone.now()
 
-                    if combined_datetime < current_time:
+                    # Only auto checkout if:
+                    # 1. Current time is past the auto checkout time
+                    # 2. Employee clocked in BEFORE the auto checkout time
+                    if combined_datetime < current_time and activity.in_datetime < combined_datetime:
                         try:
                             clock_out(
                                 Request(
