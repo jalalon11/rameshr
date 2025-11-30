@@ -121,19 +121,6 @@
             <i class="material-icons mt-2">leaderboard</i>
         </a>
     </div>
-    {% if "asset"|app_installed %}
-    <div id="fab7" class="fab round" data-tooltip="Create Asset Request">
-        <a
-            class="text-light"
-            data-toggle="oh-modal-toggle"
-            data-target="#objectCreateModal"
-            hx-get="{% url 'asset-request-creation' %}"
-            hx-target="#objectCreateModalTarget"
-        >
-            <i class="material-icons mt-2">devices</i>
-        </a>
-    </div>
-    {% endif %}
     {% if "payroll"|app_installed %}
     <div id="fab6" class="fab round" data-tooltip="Create Reimbursement">
         <a

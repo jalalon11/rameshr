@@ -2,7 +2,6 @@ from django.urls import include, path
 
 urlpatterns = [
     path("auth/", include("horilla_api.api_urls.auth.urls")),
-    path("asset/", include("horilla_api.api_urls.asset.urls")),
     path("base/", include("horilla_api.api_urls.base.urls")),
     path("employee/", include("horilla_api.api_urls.employee.urls")),
     path("notifications/", include("horilla_api.api_urls.notifications.urls")),

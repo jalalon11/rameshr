@@ -55,15 +55,6 @@ if apps.is_installed("payroll"):
         }
     )
 
-if apps.is_installed("asset"):
-    SUBMENUS.append(
-        {
-            "menu": "Asset",
-            "redirect": reverse_lazy("asset-report"),
-            "accessibility": "report.sidebar.asset_accessibility",
-        }
-    )
-
 def menu_accessibility(request, submenu, user_perms, *args, **kwargs):
     return (
         request.user.is_superuser
@@ -72,7 +63,6 @@ def menu_accessibility(request, submenu, user_perms, *args, **kwargs):
         or request.user.has_perm("attendance.view_attendance")
         or request.user.has_perm("leave.view_leaverequest")
         or request.user.has_perm("payroll.view_payslip")
-        or request.user.has_perm("asset.view_asset")
     )
 
 
@@ -98,7 +88,3 @@ def leave_accessibility(request, submenu, user_perms, *args, **kwargs):
 
 def payroll_accessibility(request, submenu, user_perms, *args, **kwargs):
     return request.user.is_superuser or request.user.has_perm("payroll.view_payslip")
-
-
-def asset_accessibility(request, submenu, user_perms, *args, **kwargs):
-    return request.user.is_superuser or request.user.has_perm("asset.view_asset")

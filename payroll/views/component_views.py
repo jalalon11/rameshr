@@ -1524,11 +1524,8 @@ def asset_fine(request):
     """
     Add asset fine method
     """
-    if apps.is_installed("asset"):
-        Asset = get_horilla_model_class(app_label="asset", model="asset")
     asset_id = request.GET["asset_id"]
     employee_id = request.GET["employee_id"]
-    asset = Asset.objects.get(id=asset_id)
     employee = Employee.objects.get(id=employee_id)
     form = forms.AssetFineForm()
     if request.method == "POST":
@@ -1538,7 +1535,6 @@ def asset_fine(request):
             instance.employee_id = employee
             instance.type = "fine"
             instance.provided_date = date.today()
-            instance.asset_id = asset
             instance.save()
             messages.success(request, _("Asset fine added"))
             return HttpResponse(

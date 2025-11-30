@@ -383,17 +383,6 @@
 								</li>
 							{% endif %}
 
-							{% if "asset"|app_installed %}
-								{% if perms.asset.view_asset or request.user|check_manager:employee or request.user == employee.employee_user_id %}
-									<li data-cell-index="16" data-cell-title="{% trans 'Assets' %}" class="oh-general__tab">
-										<a hx-get={% url 'asset-tab' employee.id %} hx-target="#asset_target"
-											data-action="general-tab" data-target="#asset_target"
-											class="oh-general__tab-link pointer" role="button">{% trans "Assets" %}
-										</a>
-									</li>
-								{% endif %}
-							{% endif %}
-
 							{% if "pms"|app_installed %}
 								{% if perms.pms.view_feedback or request.user|check_manager:employee or request.user == employee.employee_user_id %}
 									<li data-cell-index="17" data-cell-title="{% trans 'Performance' %}" class="oh-general__tab">
@@ -487,10 +476,6 @@
 
 						{% if "pms"|app_installed %}
 							<div class="oh-general__tab-target oh-profile__info-tab mb-4 d-none" id="performance_target"> </div>
-						{% endif %}
-
-						{% if "asset"|app_installed %}
-							<div class="oh-general__tab-target oh-profile__info-tab mb-4 d-none" id="asset_target"> </div>
 						{% endif %}
 
 						<div class="oh-general__tab-target oh-profile__info-tab mb-4 d-none" id="document_target"> </div>

@@ -1434,15 +1434,6 @@ class LoanAccount(HorillaModel):
     apply_on = models.CharField(default="end_of_month", max_length=20, editable=False)
     settled = models.BooleanField(default=False)
     settled_date = models.DateTimeField(null=True)
-
-    if apps.is_installed("asset"):
-        asset_id = models.ForeignKey(
-            "asset.Asset",
-            on_delete=models.PROTECT,
-            blank=True,
-            null=True,
-            editable=False,
-        )
     objects = HorillaCompanyManager("employee_id__employee_work_info__company_id")
 
     def __str__(self):

@@ -275,22 +275,6 @@
     </div>
 </div>
 
-
-<div class="oh-modal" id="editModal" role="dialog" aria-labelledby="editModal" aria-hidden="true">
-    <div class="oh-modal__dialog">
-        <div class="oh-modal__dialog-header">
-            <h2 class="oh-modal__dialog-title" id="editModalLabel">
-                {% trans "Add Asset Report" %}
-            </h2>
-            <button type="button" class="oh-modal_close--custom"
-                onclick="$('#editModal').removeClass('oh-modal--show');">
-                <ion-icon name="close-outline" role="img" aria-label="close outline"></ion-icon>
-            </button>
-        </div>
-        <div class="oh-modal__dialog-body" id="editModalForm"></div>
-    </div>
-</div>
-
 {% include "announcement_single_view.html" %}
 
 
@@ -369,7 +353,7 @@
 
         const defaultTileOrder = [
             "notInYetId", "LeaveApprove", "shiftRequestApprove", "WorkTypeRequestApprove", "AttendanceValidate", "OTApprove",
-            "LeaveAllocationApprove", "feedbackAnswer", "assetRequestApprove", "movable8", "pendingHours", "notoutYetId",
+            "LeaveAllocationApprove", "feedbackAnswer", "movable8", "pendingHours", "notoutYetId",
             "movable2", "movable3", "movable4", "movable1", "movable5", "movable6", "movable7", "movable9", "movable10", "movable11"
         ];
 

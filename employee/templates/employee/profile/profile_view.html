@@ -202,25 +202,10 @@
 								role="button"
 								>{% trans "Penalty Account" %}</a
 								>
-							</li>
-							{% endif %}
+						</li>
+						{% endif %}
 
-							{% if "asset"|app_installed %}
-								<li data-cell-index="13" data-cell-title="{% trans 'Assets' %}" class="oh-general__tab">
-									<a
-									hx-get="{% url 'profile-asset-tab' employee.id %}"
-									hx-target="#asset_target"
-									data-action="general-tab"
-									data-target="#asset_target"
-									id="asset"
-									class="oh-general__tab-link pointer"
-									role="button"
-									>{% trans "Assets" %}</a
-									>
-								</li>
-							{% endif %}
-
-							{% if "pms"|app_installed %}
+						{% if "pms"|app_installed %}
 							<li data-cell-index="12" data-cell-title="{% trans 'Performance' %}" class="oh-general__tab">
 								<a
 								hx-get="{% url 'performance-tab' employee.id %}"
@@ -333,10 +318,6 @@
 
 
 						<div class="oh-general__tab-target oh-profile__info-tab mb-4 d-none" id="allowance_deduction"></div>
-
-						{% if "asset"|app_installed %}
-							<div class="oh-general__tab-target oh-profile__info-tab mb-4 d-none" id="asset_target"></div>
-						{% endif %}
 
 						<div class="oh-general__tab-target oh-profile__info-tab mb-4 d-none" id="document_target" ></div>
 

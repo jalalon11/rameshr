@@ -30,7 +30,6 @@ class Command(BaseCommand):
         optional_apps = [
             ("attendance", "attendance_data.json"),
             ("leave", "leave_data.json"),
-            ("asset", "asset_data.json"),
             ("recruitment", "recruitment_data.json"),
             ("onboarding", "onboarding_data.json"),
             ("offboarding", "offboarding_data.json"),

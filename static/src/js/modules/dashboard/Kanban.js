@@ -230,60 +230,7 @@ class Kanban {
     let formData = $(e.target).serializeArray();
     $.each(formData, function (i, field) {
       if (field.name === "kanban-card-name" && field.value) {
-        if (type === "asset") {
-          let kanbanCard = `
-          <div class="oh-kanban__card oh-kanban__card--status oh-kanban__card--blue"  id=${uuidv4()}>
-            <div class="oh-kanban__card-head">
-              <div class="oh-profile oh-profile--md">
-                <span class="oh-profile__name oh-text--dark" data-type='label'
-                  >${field.value.trim()}</span
-                >
-              </div>
-              <div class="oh-kanban__card-actions oh-kanban__dropdown">
-                        <button
-                          class="oh-btn oh-btn--small oh-btn--transparent oh-kanban__btn oh-kanban__dropdown-toggle"
-                        >
-                          <ion-icon name="ellipsis-vertical-sharp"></ion-icon>
-                        </button>
-
-                        <div class="oh-dropdown oh-kanban__dropdown-menu d-none">
-                          <div
-                            class="oh-dropdown__menu oh-dropdown__menu--right"
-                          >
-                            <ul class="oh-dropdown__items">
-                              <li class="oh-dropdown__item">
-                                <a href="#" class="oh-dropdown__link oh-dropdown__link--danger oh-kanban__card-delete">Delete</a>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-
-                      </div>
-            </div>
-            <div class="oh-kanban__card-body">
-              <button class="oh-kanban__card-body-collapse" aria-label="Toggle Options"></button>
-              <div class="oh-kanban__card-content">
-                <label class="oh-label oh-label--sm d-block">Label</label>
-                <select class="oh-select oh-select--sm oh-select-no-search">
-                  <option>Status #1</option>
-                  <option>Status #2</option>
-                  <option>Status #3</option>
-                </select>
-              </div>
-            </div>
-            <div class="oh-kanban__card-footer py-0">
-              <select class="oh-kanban__select oh-select oh-select--sm oh-select-2 oh-select-no-search">
-                <option value='1'>Assigned</option>
-                <option value='2'>Free</option>
-                <option value='3'>On Repair</option>
-                <option value='4'>Unavailable</option>
-              </select>
-            </div>
-          </div>
-          `;
-          // Add the card to section body
-          $(e.target).parents(".oh-kanban-group__body").append(kanbanCard);
-        } else {
+        if (type !== "asset") {
           let kanbanCard = `
             <div class="oh-kanban__card"  id=${uuidv4()}>
               <div class="oh-kanban__card-head">

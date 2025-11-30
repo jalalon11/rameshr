@@ -2,7 +2,6 @@ from django.apps import apps
 from django.urls import path
 
 from report.views import (
-    asset_report,
     attendance_report,
     employee_report,
     leave_report,
@@ -63,13 +62,5 @@ if apps.is_installed("payroll"):
                 "payroll-report", payroll_report.payroll_report, name="payroll-report"
             ),
             path("payroll-pivot", payroll_report.payroll_pivot, name="payroll-pivot"),
-        ]
-    )
-
-if apps.is_installed("asset"):
-    urlpatterns.extend(
-        [
-            path("asset-report", asset_report.asset_report, name="asset-report"),
-            path("asset-pivot", asset_report.asset_pivot, name="asset-pivot"),
         ]
     )

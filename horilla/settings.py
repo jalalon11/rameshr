@@ -62,7 +62,6 @@ INSTALLED_APPS = [
     "recruitment",
     "leave",
     "onboarding",
-    "asset",
     "attendance",
     "payroll",
     "widget_tweaks",

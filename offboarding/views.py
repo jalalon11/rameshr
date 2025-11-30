@@ -1087,30 +1087,6 @@ def dashboard_task_table(request):
     )
 
 
-if apps.is_installed("asset"):
-
-    @login_required
-    @any_manager_can_enter(["offboarding.view_offboarding"])
-    def dashboard_asset_table(request):
-        """
-        This method is used to render the employee assets table page in the dashboard.
-        """
-        AssetAssignment = get_horilla_model_class(
-            app_label="asset", model="assetassignment"
-        )
-
-        offboarding_employees = OffboardingEmployee.objects.entire().values_list(
-            "employee_id__id", flat=True
-        )
-        assets = AssetAssignment.objects.entire().filter(
-            return_status__isnull=True,
-            assigned_to_employee_id__in=offboarding_employees,
-        )
-        return render(
-            request,
-            "offboarding/dashboard/asset_returned_table.html",
-            {"assets": assets},
-        )
 
 
 @login_required

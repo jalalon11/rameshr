@@ -97,20 +97,6 @@
                     </div>
                 </div>
                 {% endif %}
-                {% if "asset"|app_installed %}
-                    {% if perms.offboarding.view_offboarding %}
-                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 mt-4">
-                            <div
-                                class="oh-card-dashboard oh-card-dashboard--no-scale oh-card-dashboard--transparent oh-offboarding-card"
-                                style="cursor: default"
-                                hx-get="{% url 'dashboard-asset-table' %}"
-                                hx-trigger="load"
-                            >
-                                <div class="animated-background"></div>
-                            </div>
-                        </div>
-                    {% endif %}
-                {% endif %}
                 {% if perms.offboarding.view_offboarding %}
 
                 <div class="col-12 col-sm-12 col-md-12 col-lg-4 mt-4">

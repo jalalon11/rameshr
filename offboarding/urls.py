@@ -118,12 +118,3 @@ urlpatterns = [
         name="dashboard-join-chart",
     ),
 ]
-
-if apps.is_installed("asset"):
-    urlpatterns += [
-        path(
-            "dashboard-asset-table",
-            views.dashboard_asset_table,
-            name="dashboard-asset-table",
-        ),
-    ]

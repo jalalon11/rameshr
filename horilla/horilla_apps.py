@@ -50,7 +50,6 @@ SIDEBARS = [
     "leave",
     "payroll",
     "offboarding",
-    "asset",
 ]
 
 WHITE_LABELLING = False

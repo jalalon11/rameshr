@@ -42,8 +42,6 @@ def create_installments(sender, instance, created, **kwargs):
     """
     installments = []
     asset = True
-    if apps.is_installed("asset"):
-        asset = True if instance.asset_id is None else False
 
     if created and asset and instance.type != "fine":
         loan = Allowance()

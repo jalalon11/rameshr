@@ -331,4 +331,3 @@ urlpatterns.append(
     )
 )
 urlpatterns.append(path("payroll/", lambda request: redirect("view-payroll-dashboard")))
-urlpatterns.append(path("asset/", lambda request: redirect("asset-dashboard")))

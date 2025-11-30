@@ -248,7 +248,6 @@ def load_demo_database(request):
                 optional_apps = [
                     ("attendance", "attendance_data.json"),
                     ("leave", "leave_data.json"),
-                    ("asset", "asset_data.json"),
                     ("recruitment", "recruitment_data.json"),
                     ("onboarding", "onboarding_data.json"),
                     ("offboarding", "offboarding_data.json"),
@@ -6682,7 +6681,6 @@ def check_chart_permission(request, charts):
         "attendance_validate": "attendance",
         "leave_request_approve": "leave",
         "leave_allocation_approve": "leave",
-        "asset_request_approve": "asset",
         "employees_chart": "employee",
         "gender_chart": "employee",
         "department_chart": "base",
@@ -6702,7 +6700,6 @@ def check_chart_permission(request, charts):
         "attendance_validate": "attendance.change_attendance",
         "leave_request_approve": "leave.change_leaverequest",
         "leave_allocation_approve": "leave.change_leaveallocationrequest",
-        "asset_request_approve": "asset.change_assetrequest",
     }
     chart_list = []
     need_reporting_manager = [
@@ -6716,7 +6713,6 @@ def check_chart_permission(request, charts):
         "attendance_validate",
         "leave_request_approve",
         "leave_allocation_approve",
-        "asset_request_approve",
     ]
     for chart in charts:
         if apps.is_installed(chart_apps.get(chart[0])):
@@ -6768,7 +6764,6 @@ def employee_chart_show(request):
         ("leave_request_approve", _("Leave Request to Approve")),
         ("leave_allocation_approve", _("Leave Allocation to Approve")),
         ("feedback_answer", _("Feedbacks to Answer")),
-        ("asset_request_approve", _("Asset Request to Approve")),
     ]
     charts = check_chart_permission(request, charts)
 

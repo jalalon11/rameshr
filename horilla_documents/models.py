@@ -142,24 +142,6 @@ class Document(HorillaModel):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        if self.is_digital_asset:
-            if apps.is_installed("asset"):
-                from asset.models import Asset, AssetCategory
-
-                asset_category = AssetCategory.objects.get_or_create(
-                    asset_category_name="Digital Asset"
-                )
-
-                Asset.objects.create(
-                    asset_name=self.title,
-                    asset_purchase_date=date.today(),
-                    asset_category_id=asset_category[0],
-                    asset_status="Not-Available",
-                    asset_purchase_cost=0,
-                    expiry_date=self.expiry_date,
-                    notify_before=self.notify_before,
-                    asset_tracking_id=f"DIG_ID0{self.pk}",
-                )
 
     def upload_documents_count(self):
         total_requests = Document.objects.filter(

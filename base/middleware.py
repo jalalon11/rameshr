@@ -152,7 +152,6 @@ class CompanyMiddleware:
                     "leaveallocationrequest",
                     "compensatoryleaverequest",
                 ],
-                "asset": ["assetassignment", "assetrequest"],
                 "attendance": [
                     "attendance",
                     "attendanceactivity",
