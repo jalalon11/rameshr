@@ -378,28 +378,12 @@ def compute_yearly_taxable_amount(
     return default_yearly_taxable_amount
 
 
-def convert_year_tax_to_period(
-    federal_tax_for_period=None,
-    yearly_tax=None,
-    total_days=None,
-    start_date=None,
-    end_date=None,
-    *args,
-    **kwargs,
-):
-    """
-    Method to convert yearly taxable to monthly
-    """
-    return federal_tax_for_period
-
-
 def compute_net_pay(
     net_pay=None,
     gross_pay=None,
     total_pretax_deduction=None,
     total_post_tax_deduction=None,
     total_tax_deductions=None,
-    federal_tax=None,
     loss_of_pay_amount=None,
     *args,
     **kwargs,

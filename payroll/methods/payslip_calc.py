@@ -169,7 +169,6 @@ tets = {
     ],
     "total_deductions": 3788.227272727273,
     "loss_of_pay": 1590.909090909091,
-    "federal_tax": 0,
     "start_date": "2024-02-01",
     "end_date": "2024-02-29",
     "range": "Feb 01 2024 - Feb 29 2024",

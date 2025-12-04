@@ -683,7 +683,7 @@
             "modified_by": 1,
             "is_active": true,
             "question": "How does the Federal Tax feature work?",
-            "answer": "The Federal Tax feature automates tax calculations, defines tax brackets, and sets rates based on income. It ensures compliance and smooth payroll processing. Admins or users with permission need to create the tax brackets and then can be used in the contract",
+            "answer": "The Federal Tax feature has been removed from the system. Tax calculations are now handled through other deduction mechanisms.",
             "category": 2,
             "company_id": null,
             "tags": [10]

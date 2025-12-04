@@ -74,7 +74,6 @@ from payroll.methods.payslip_calc import (
     calculate_tax_deduction,
     calculate_taxable_gross_pay,
 )
-from payroll.methods.tax_calc import calculate_taxable_amount
 from payroll.models.models import (
     Allowance,
     Contract,
@@ -169,7 +168,6 @@ def payroll_calculation(employee, start_date, end_date):
 
     taxable_gross_pay = calculate_taxable_gross_pay(**kwargs)
     tax_deductions = calculate_tax_deduction(**kwargs)
-    federal_tax = calculate_taxable_amount(**kwargs)
 
     total_allowance = sum(item["amount"] for item in allowances["allowances"])
     total_pretax_deduction = sum(
@@ -186,7 +184,6 @@ def payroll_calculation(employee, start_date, end_date):
         total_pretax_deduction
         + total_post_tax_deduction
         + total_tax_deductions
-        + federal_tax
         + loss_of_pay_amount
     )
 
@@ -200,7 +197,6 @@ def payroll_calculation(employee, start_date, end_date):
         total_pretax_deduction=total_pretax_deduction,
         total_post_tax_deduction=total_post_tax_deduction,
         total_tax_deductions=total_tax_deductions,
-        federal_tax=federal_tax,
         loss_of_pay_amount=loss_of_pay_amount,
         loss_of_pay=loss_of_pay,
     )
@@ -237,7 +233,6 @@ def payroll_calculation(employee, start_date, end_date):
         "net_deductions": net_pay_deduction_list,
         "total_deductions": total_deductions,
         "loss_of_pay": loss_of_pay,
-        "federal_tax": federal_tax,
         "start_date": start_date,
         "end_date": end_date,
         "range": f"{start_date.strftime('%b %d %Y')} - {end_date.strftime('%b %d %Y')}",
@@ -1962,7 +1957,6 @@ def payslip_detailed_export_data(request):
         )
     ]
     selected_columns += [
-        ("federal_tax", "Federal Tax"),
         ("other_deductions", "Other Deductions"),
         ("total_deductions", "Total Deductions"),
     ]
@@ -1991,7 +1985,6 @@ def payslip_detailed_export_data(request):
         "Total Deductions": 0,
         "Net Pay": 0,
         "Gross Pay": 0,
-        "Federal Tax": 0,
     }
 
     totals.update(allowance_totals)
@@ -2003,10 +1996,6 @@ def payslip_detailed_export_data(request):
         other_deductions_sum = 0
         total_allowance = 0
         total_deduction = 0
-        total_federal_tax = 0
-
-        federal_tax = payslip.pay_head_data["federal_tax"]
-        total_federal_tax += federal_tax
 
         allos = payslip.pay_head_data["allowances"]
         deducts = all_deductions(payslip.pay_head_data)
@@ -2083,13 +2072,11 @@ def payslip_detailed_export_data(request):
         payslip_data["Other Deductions"] = other_deductions_sum
         payslip_data["Total Allowances"] = total_allowance
         payslip_data["Total Deductions"] = total_deduction
-        payslip_data["Federal Tax"] = federal_tax
 
         totals["Other Allowances"] += other_allowances_sum
         totals["Other Deductions"] += other_deductions_sum
         totals["Total Allowances"] += total_allowance
         totals["Total Deductions"] += total_deduction
-        totals["Federal Tax"] += federal_tax
 
         payslips_data.append(payslip_data)
 
@@ -2176,7 +2163,6 @@ def payslip_detailed_export(request):
     header_row = [col_name for _, col_name in selected_columns]
     allowances_header = allowances + ["Other Allowances", "Total Allowances"]
     deductions_header = deductions + [
-        "Federal Tax",
         "Other Deductions",
         "Total Deductions",
     ]
