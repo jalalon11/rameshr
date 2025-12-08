@@ -1,3 +1,23 @@
-{% extends 'index.html' %} {% load static %} {% load i18n %} {% block content %}
-<div id="form-container">{% include 'base/auth/username_change_form.html' %}</div>
-{% endblock %}
+{% load static %} {% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% trans "Change Username" %}</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/ui/lgu-logo.jpg' %}">
+    <link rel="icon" type="image/jpeg" sizes="32x32" href="{% static 'images/ui/lgu-logo.jpg' %}">
+    <link rel="icon" type="image/jpeg" sizes="16x16" href="{% static 'images/ui/lgu-logo.jpg' %}">
+    <link rel="stylesheet" href="{% static '/build/css/style.min.css' %}" />
+    <link rel="manifest" href="{% static 'build/manifest.json' %}" />
+</head>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' >
+    <div id="main">
+        <div id="form-container">{% include 'base/auth/username_change_form.html' %}</div>
+    </div>
+    <script src="{% static 'build/js/web.frontend.min.js' %}"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+</body>
+</html>
