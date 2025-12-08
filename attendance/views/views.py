@@ -1714,12 +1714,14 @@ def user_request_one_view(request, id):
     at_work_seconds = attendance_request.at_work_second
     hours_at_work = at_work_seconds // 3600
     minutes_at_work = (at_work_seconds % 3600) // 60
-    at_work = "{:02}:{:02}".format(hours_at_work, minutes_at_work)
+    seconds_at_work = (at_work_seconds % 3600) % 60
+    at_work = "{:02}:{:02}:{:02}".format(hours_at_work, minutes_at_work, seconds_at_work)
 
     over_time_seconds = attendance_request.overtime_second
     hours_over_time = over_time_seconds // 3600
     minutes_over_time = (over_time_seconds % 3600) // 60
-    over_time = "{:02}:{:02}".format(hours_over_time, minutes_over_time)
+    seconds_over_time = (over_time_seconds % 3600) % 60
+    over_time = "{:02}:{:02}:{:02}".format(hours_over_time, minutes_over_time, seconds_over_time)
     instance_ids_json = request.GET["instances_ids"]
     instance_ids = json.loads(instance_ids_json) if instance_ids_json else []
     previous_instance, next_instance = closest_numbers(instance_ids, id)

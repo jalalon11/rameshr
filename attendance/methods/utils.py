@@ -38,7 +38,7 @@ MONTH_MAPPING = {
 
 def format_time(seconds):
     """
-    this method is used to formate seconds to H:M and return it
+    this method is used to formate seconds to H:M:S and return it
     args:
         seconds : seconds
     """
@@ -46,7 +46,7 @@ def format_time(seconds):
     hour = int(seconds // 3600)
     minutes = int((seconds % 3600) // 60)
     seconds = int((seconds % 3600) % 60)
-    return f"{hour:02d}:{minutes:02d}"
+    return f"{hour:02d}:{minutes:02d}:{seconds:02d}"
 
 
 def strtime_seconds(time):
@@ -237,22 +237,33 @@ def validate_hh_mm_ss_format(value):
 def validate_time_format(value):
     """
     this method is used to validate the format of duration like fields.
+    Accepts HH:MM:SS format
     """
-    if value.count(":") == 2:
-        # If the format is "H:MM:SS", check if it can be reduced to "HH:MM"
-        # Django's DurationField internally converts it to a timedelta object, it becomes "0:00:00"
-        value = ":".join(value.split(":")[:2])
-
-    if len(value) > 6:
-        raise ValidationError(_("Invalid format, it should be HH:MM format"))
+    if len(value) > 10:
+        raise ValidationError(_("Invalid format, it should be HH:MM:SS format"))
     try:
-        hour, minute = value.split(":")
-        if len(hour) > 3 or len(minute) > 2:
-            raise ValidationError(_("Invalid time"))
-        hour = int(hour)
-        minute = int(minute)
-        if len(str(hour)) > 3 or len(str(minute)) > 2 or minute not in range(60):
-            raise ValidationError(_("Invalid time, excepted MM:SS"))
+        parts = value.split(":")
+        if len(parts) == 2:
+            # HH:MM format
+            hour, minute = parts
+            if len(hour) > 3 or len(minute) > 2:
+                raise ValidationError(_("Invalid time"))
+            hour = int(hour)
+            minute = int(minute)
+            if len(str(hour)) > 3 or len(str(minute)) > 2 or minute not in range(60):
+                raise ValidationError(_("Invalid time, expected HH:MM"))
+        elif len(parts) == 3:
+            # HH:MM:SS format
+            hour, minute, second = parts
+            if len(hour) > 3 or len(minute) > 2 or len(second) > 2:
+                raise ValidationError(_("Invalid time"))
+            hour = int(hour)
+            minute = int(minute)
+            second = int(second)
+            if len(str(hour)) > 3 or len(str(minute)) > 2 or len(str(second)) > 2 or minute not in range(60) or second not in range(60):
+                raise ValidationError(_("Invalid time, expected HH:MM:SS"))
+        else:
+            raise ValidationError(_("Invalid format, expected HH:MM or HH:MM:SS"))
     except ValueError as error:
         raise ValidationError(_("Invalid format")) from error
 

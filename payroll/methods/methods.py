@@ -177,20 +177,40 @@ def hourly_computation(employee, wage, start_date, end_date):
         }
     attendance_data = get_attendance(employee, start_date, end_date)
     attendances_on_period = attendance_data["attendances_on_period"]
-    total_worked_hour_in_second = 0
-    for attendance in attendances_on_period:
-        total_worked_hour_in_second = total_worked_hour_in_second + (
-            attendance.at_work_second - attendance.overtime_second
-        )
 
-    # to find wage per second
-    # wage_per_second = wage_per_hour / total_seconds_in_hour
+    # Calculate actual worked hours and undertime
+    total_worked_seconds = 0
+    total_undertime_seconds = 0
+
+    for attendance in attendances_on_period:
+        # Calculate worked hours (excluding overtime)
+        worked_seconds = attendance.at_work_second - attendance.overtime_second
+        total_worked_seconds += worked_seconds
+        worked_hours = worked_seconds / 3600
+
+        # Get minimum required hours
+        min_hour_str = attendance.minimum_hour
+        if min_hour_str and ':' in min_hour_str:
+            hours, minutes = map(int, min_hour_str.split(':'))
+            min_hours = hours + minutes / 60
+        else:
+            min_hours = 0
+
+        # Calculate undertime
+        if worked_hours < min_hours:
+            undertime_seconds = (min_hours - worked_hours) * 3600
+            total_undertime_seconds += undertime_seconds
+
+    # Calculate basic pay based on actual worked hours
     wage_in_second = wage / 3600
-    basic_pay = float(f"{(wage_in_second * total_worked_hour_in_second):.2f}")
+    basic_pay = float(f"{(wage_in_second * total_worked_seconds):.2f}")
+
+    # Calculate undertime deduction
+    undertime_deduction = float(f"{(wage_in_second * total_undertime_seconds):.2f}")
 
     return {
         "basic_pay": basic_pay,
-        "loss_of_pay": 0,
+        "loss_of_pay": undertime_deduction,
         "paid_days": len(attendances_on_period),
         "unpaid_days": 0,
     }

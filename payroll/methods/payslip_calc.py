@@ -216,6 +216,7 @@ def calculate_gross_pay(*_args, **kwargs):
     basic_pay = kwargs["basic_pay"]
     total_allowance = kwargs["total_allowance"]
     # basic_pay = compute_salary_on_period(employee, start_date, end_date)["basic_pay"]
+    # Note: basic_pay already has undertime deducted, so we don't subtract loss_of_pay here
     gross_pay = total_allowance + basic_pay
 
     employee, start_date, end_date = (

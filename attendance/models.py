@@ -168,14 +168,14 @@ class Attendance(HorillaModel):
     )
     attendance_worked_hour = models.CharField(
         null=True,
-        default="00:00",
+        default="00:00:00",
         max_length=10,
         validators=[validate_time_format],
         verbose_name=_("Worked Hours"),
     )
     minimum_hour = models.CharField(
         max_length=10,
-        default="00:00",
+        default="00:00:00",
         validators=[validate_time_format],
         verbose_name=_("Minimum hour"),
     )
@@ -187,7 +187,7 @@ class Attendance(HorillaModel):
         verbose_name=_("Batch Attendance"),
     )
     attendance_overtime = models.CharField(
-        default="00:00",
+        default="00:00:00",
         validators=[validate_time_format],
         max_length=10,
         verbose_name=_("Overtime"),
