@@ -53,9 +53,6 @@ from recruitment.models import (
     RejectedCandidate,
     RejectReason,
     Resume,
-    Skill,
-    SkillZone,
-    SkillZoneCandidate,
     Stage,
     StageFiles,
     StageNote,
@@ -283,7 +280,7 @@ class RecruitmentCreationForm(BaseModelForm):
 
         model = Recruitment
         fields = "__all__"
-        exclude = ["is_active"]
+        exclude = ["is_active", "company_id"]
         widgets = {
             "description": forms.Textarea(attrs={"data-summernote": ""}),
         }
@@ -300,6 +297,7 @@ class RecruitmentCreationForm(BaseModelForm):
         super().__init__(*args, **kwargs)
 
         reload_queryset(self.fields)
+        
         if not self.instance.pk:
             self.fields["recruitment_managers"] = HorillaMultiSelectField(
                 queryset=Employee.objects.filter(is_active=True),
@@ -313,11 +311,6 @@ class RecruitmentCreationForm(BaseModelForm):
                 label=f"{self._meta.model()._meta.get_field('recruitment_managers').verbose_name}",
             )
 
-        skill_choices = [("", _("---Choose Skills---"))] + list(
-            self.fields["skills"].queryset.values_list("id", "title")
-        )
-        self.fields["skills"].choices = skill_choices
-        self.fields["skills"].choices += [("create", _("Create new skill "))]
 
     # def create_option(self, *args,**kwargs):
     #     option = super().create_option(*args,**kwargs)
@@ -802,138 +795,7 @@ class CandidateExportForm(forms.Form):
     )
 
 
-class SkillZoneCreateForm(BaseModelForm):
 
-    class Meta:
-        """
-        Class Meta for additional options
-        """
-
-        model = SkillZone
-        fields = "__all__"
-        exclude = ["is_active"]
-
-
-class SkillZoneCandidateForm(BaseModelForm):
-    verbose_name = _("Skill Zone Candidate")
-    candidate_id = forms.ModelMultipleChoiceField(
-        queryset=Candidate.objects.all(),
-        widget=forms.SelectMultiple,
-        label=_("Candidate"),
-    )
-
-    class Meta:
-        """
-        Class Meta for additional options
-        """
-
-        model = SkillZoneCandidate
-        fields = "__all__"
-        exclude = [
-            "added_on",
-            "is_active",
-        ]
-
-    def as_p(self, *args, **kwargs):
-        """
-        Render the form fields as HTML table rows with Bootstrap styling.
-        """
-        context = {"form": self}
-        table_html = render_to_string("common_form.html", context)
-        return table_html
-
-    def clean_candidate_id(self):
-        selected_candidates = self.cleaned_data["candidate_id"]
-
-        # Ensure all selected candidates are instances of the Candidate model
-        for candidate in selected_candidates:
-            if not isinstance(candidate, Candidate):
-                raise forms.ValidationError("Invalid candidate selected.")
-
-        return selected_candidates.first()
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.fields["candidate_id"].empty_label = None
-        if self.instance.pk:
-            self.verbose_name = (
-                self.instance.candidate_id.name
-                + " / "
-                + self.instance.skill_zone_id.title
-            )
-
-    def save(self, commit: bool = True) -> SkillZoneCandidate:
-
-        if not self.instance.pk:
-            candidates = Candidate.objects.filter(
-                id__in=list((self.data.getlist("candidate_id")))
-            )
-            skill_zone = self.cleaned_data["skill_zone_id"]
-            reason = self.cleaned_data["reason"]
-            for candidate in candidates:
-                zone_cand = SkillZoneCandidate()
-                zone_cand.skill_zone_id = skill_zone
-                zone_cand.candidate_id = candidate
-                zone_cand.reason = reason
-                zone_cand.save()
-        else:
-            instance = super().save()
-
-        return self.instance
-
-
-class ToSkillZoneForm(BaseModelForm):
-    verbose_name = _("Add To Skill Zone")
-    skill_zone_ids = forms.ModelMultipleChoiceField(
-        queryset=SkillZone.objects.all(), label=_("Skill Zones")
-    )
-
-    class Meta:
-        """
-        Class Meta for additional options
-        """
-
-        model = SkillZoneCandidate
-        fields = "__all__"
-        exclude = [
-            "skill_zone_id",
-            "is_active",
-            "candidate_id",
-        ]
-        error_messages = {
-            NON_FIELD_ERRORS: {
-                "unique_together": "This candidate alreay exist in this skill zone",
-            }
-        }
-
-    def clean(self):
-        cleaned_data = super().clean()
-        candidate = cleaned_data.get("candidate_id")
-        skill_zones = cleaned_data.get("skill_zone_ids")
-        skill_zone_list = []
-        for skill_zone in skill_zones:
-            # Check for the unique together constraint manually
-            if SkillZoneCandidate.objects.filter(
-                candidate_id=candidate, skill_zone_id=skill_zone
-            ).exists():
-                # Raise a ValidationError with a custom error message
-                skill_zone_list.append(skill_zone)
-        if len(skill_zone_list) > 0:
-            skill_zones_str = ", ".join(
-                str(skill_zone) for skill_zone in skill_zone_list
-            )
-            raise ValidationError(f"{candidate} already exists in {skill_zones_str}.")
-
-            # cleaned_data['skill_zone_id'] =skill_zone
-        return cleaned_data
-
-    def as_p(self, *args, **kwargs):
-        """
-        Render the form fields as HTML table rows with Bootstrap styling.
-        """
-        context = {"form": self}
-        table_html = render_to_string("common_form.html", context)
-        return table_html
 
 
 class RejectReasonForm(ModelForm):
@@ -1050,11 +912,6 @@ class ScheduleInterviewForm(BaseModelForm):
         table_html = render_to_string("common_form.html", context)
         return table_html
 
-
-class SkillsForm(ModelForm):
-    class Meta:
-        model = Skill
-        fields = ["title"]
 
 
 class ResumeForm(ModelForm):

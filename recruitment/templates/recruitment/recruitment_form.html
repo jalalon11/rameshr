@@ -10,19 +10,19 @@
             dynamicskills.click();
         }
     }
-    $(document).ready(function(){
-        $("[name= 'skills']").on("change", function(){
+    $(document).ready(function () {
+        $("[name= 'skills']").on("change", function () {
             skillChange($(this))
         })
     });
     {% if dynamic %}
     setTimeout(function () {
-      $('#dynamicCreateModal').removeClass('oh-modal--show');
+        $('#dynamicCreateModal').removeClass('oh-modal--show');
     }, 500);
-  {% endif %}
+    {% endif %}
 </script>
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         function formatOption(option) {
             if (!option.id) {
                 return option.text;
@@ -41,29 +41,23 @@
 </script>
 {% if messages %}
 <div class="oh-wrapper">
-  {% for message in messages %}
-  <div class="oh-alert-container">
-    <div class="oh-alert oh-alert--animated {{message.tags}}">
-      {{ message }}
+    {% for message in messages %}
+    <div class="oh-alert-container">
+        <div class="oh-alert oh-alert--animated {{message.tags}}">
+            {{ message }}
+        </div>
     </div>
-  </div>
-  {% endfor %}
+    {% endfor %}
 </div>
 {% endif %}
 <div class="oh-modal__dialog-header">
-    <h5 class="oh-modal__dialog-title" id="addRecruitmentModalLabel"
-      >{% if duplicate %}{% trans "Duplicate" %}{% else %}{% trans "Create" %}{% endif %} {{form.verbose_name}}</span
-    >
-    <button class="oh-modal__close" aria-label="Close" >
-      <ion-icon name="close-outline"></ion-icon>
-    </button>
+    <h5 class="oh-modal__dialog-title" id="addRecruitmentModalLabel">{% if duplicate %}{% trans "Duplicate" %}{% else %}{% trans "Create" %}{% endif %} {{form.verbose_name}}</span>
+        <button class="oh-modal__close" aria-label="Close">
+            <ion-icon name="close-outline"></ion-icon>
+        </button>
 </div>
 <div class="oh-modal__dialog-body" id="addRecruitmentModalBody">
-    <form
-        action="{% url 'recruitment-create' %}"
-        method="post"
-        class="oh-general__tab-target oh-profile-section"
-    >
+    <form action="{% url 'recruitment-create' %}" method="post" class="oh-general__tab-target oh-profile-section">
         <div>
             {% csrf_token %}
             <div class="row" id="recruitmentUpdateContainer">
@@ -73,109 +67,68 @@
                         <li>{{error}}</li>
                     </ul>
                     {% endfor %}
-                    <label
-                        class="oh-label required-star"
-                        for="{{form.title.id_for_label}}"
-                        >{{form.title.label}}</label
-                    >
+                    <label class="oh-label required-star" for="{{form.title.id_for_label}}">{{form.title.label}}</label>
                     {{form.title}} {{form.title.errors}}
                 </div>
                 <div class="col-12 col-sm-12 col-md-12 col-lg-12">
-                    <label
-                        class="oh-label required-star"
-                        for="{{form.description.id_for_label}}"
-                        >{{form.description.label}}</label
-                    >
+                    <label class="oh-label required-star"
+                        for="{{form.description.id_for_label}}">{{form.description.label}}</label>
                     {{form.description}} {{form.description.errors}}
                 </div>
-                <div
-                    class="col-12 col-sm-12 col-md-12 col-lg-6"
-                    id="openPositionUpdateContainer"
-                >
-                    <label
-                        class="oh-label required-star"
-                        for="{{form.open_positions.id_for_label}}"
-                        >{{form.open_positions.label}}</label
-                    >
+                <div class="col-12 col-sm-12 col-md-12 col-lg-6" id="openPositionUpdateContainer">
+                    <label class="oh-label required-star"
+                        for="{{form.open_positions.id_for_label}}">{{form.open_positions.label}}</label>
                     {{form.open_positions}} {{form.open_positions.errors}}
                 </div>
                 <div class="col-12 col-sm-12 col-md-12 col-lg-6">
-                    <label
-                        class="oh-label required-star"
-                        for="{{form.recruitment_managers.id_for_label}}"
-                        >{{form.recruitment_managers.label}}</label
-                    >
+                    <label class="oh-label required-star"
+                        for="{{form.recruitment_managers.id_for_label}}">{{form.recruitment_managers.label}}</label>
                     {{form.recruitment_managers}}
                     {{form.recruitment_managers.errors}}
                 </div>
                 <div class="col-12 col-sm-12 col-md-12 col-lg-6">
-                    <label class="oh-label" for="{{form.start_date.id_for_label}}"
-                        >{{form.start_date.label}}</label
-                    >
+                    <label class="oh-label" for="{{form.start_date.id_for_label}}">{{form.start_date.label}}</label>
                     {{form.start_date}} {{form.start_date.errors}}
                 </div>
                 <div class="col-12 col-sm-12 col-md-12 col-lg-6">
-                    <label class="oh-label" for="{{form.end_date.id_for_label}}"
-                        >{{form.end_date.label}}</label
-                    >
+                    <label class="oh-label" for="{{form.end_date.id_for_label}}">{{form.end_date.label}}</label>
                     {{form.end_date}} {{form.end_date.errors}}
                 </div>
                 <div class="col-12 col-sm-12 col-md-12 col-lg-6">
-                    <label class="oh-label" for="{{form.vacancy.id_for_label}}"
-                        >{{form.vacancy.label}}</label
-                    >
+                    <label class="oh-label" for="{{form.vacancy.id_for_label}}">{{form.vacancy.label}}</label>
                     {{form.vacancy}} {{form.vacancy.errors}}
                 </div>
                 <div class="col-12 col-sm-12 col-md-12 col-lg-6">
-                    <label class="oh-label" for="{{form.company_id.id_for_label}}"
-                        >{{form.company_id.label}}</label
-                    >
+                    <label class="oh-label" for="{{form.company_id.id_for_label}}">{{form.company_id.label}}</label>
                     {{form.company_id}} {{form.company_id.errors}}
                 </div>
                 <div class="col-12 col-sm-12 col-md-12 col-lg-6">
-                    <label
-                        class="oh-label"
-                        for="{{form.survey_templates.id_for_label}}"
-                        >{{form.survey_templates.label}}</label
-                    >
+                    <label class="oh-label"
+                        for="{{form.survey_templates.id_for_label}}">{{form.survey_templates.label}}</label>
                     {{form.survey_templates}}
                 </div>
                 <div class="col-12 col-sm-12 col-md-12 col-lg-6">
-                    <label class="oh-label" for="{{form.skills.id_for_label}}"
-                        >{{form.skills.label}}</label
-                    >
+                    <label class="oh-label" for="{{form.skills.id_for_label}}">{{form.skills.label}}</label>
                     {{form.skills}}
                 </div>
 
                 <div class="col-12 col-sm-12 col-md-12 col-lg-4">
-                    <label
-                        class="oh-label"
-                        for="{{form.is_published.id_for_label}}"
-                        title="{{form.is_published.help_text|safe}}"
-                        >{{form.is_published.label}} ?</label
-                    >
+                    <label class="oh-label" for="{{form.is_published.id_for_label}}"
+                        title="{{form.is_published.help_text|safe}}">{{form.is_published.label}} ?</label>
                     <div class="w-100 d-flex" style="align-items: center">
                         <div class="oh-switch">{{form.is_published}}</div>
                     </div>
                 </div>
                 <div class="col-12 col-sm-12 col-md-12 col-lg-4">
-                    <label
-                        class="oh-label"
-                        for="{{form.optional_profile_image.id_for_label}}"
-                        title="{{form.optional_profile_image.help_text|safe}}"
-                        >{{form.optional_profile_image.label}}</label
-                    >
+                    <label class="oh-label" for="{{form.optional_profile_image.id_for_label}}"
+                        title="{{form.optional_profile_image.help_text|safe}}">{{form.optional_profile_image.label}}</label>
                     <div class="w-100 d-flex" style="align-items: center">
                         <div class="oh-switch">{{form.optional_profile_image}}</div>
                     </div>
                 </div>
                 <div class="col-12 col-sm-12 col-md-12 col-lg-4">
-                    <label
-                        class="oh-label"
-                        for="{{form.optional_resume.id_for_label}}"
-                        title="{{form.optional_resume.help_text|safe}}"
-                        >{{form.optional_resume.label}}</label
-                    >
+                    <label class="oh-label" for="{{form.optional_resume.id_for_label}}"
+                        title="{{form.optional_resume.help_text|safe}}">{{form.optional_resume.label}}</label>
                     <div class="w-100 d-flex" style="align-items: center">
                         <div class="oh-switch">{{form.optional_resume}}</div>
                     </div>
@@ -183,12 +136,8 @@
             </div>
         </div>
         <div class="d-flex flex-row-reverse w-100 align-items-right mt-4">
-            <button
-                type="submit"
-                class="oh-btn oh-btn--secondary pl-5 pr-5"
-                hx-post="{% url 'recruitment-create' %}"
-                hx-target="#objectCreateModalTarget"
-            >
+            <button type="submit" class="oh-btn oh-btn--secondary pl-5 pr-5" hx-post="{% url 'recruitment-create' %}"
+                hx-target="#objectCreateModalTarget">
                 {% trans "Save" %}
             </button>
         </div>

@@ -336,55 +336,7 @@ urlpatterns = [
         views.candidate_select_filter,
         name="candidate-select-filter",
     ),
-    path("skill-zone-view/", views.skill_zone_view, name="skill-zone-view"),
-    path("skill-zone-create", views.skill_zone_create, name="skill-zone-create"),
-    path(
-        "skill-zone-update/<int:sz_id>",
-        views.skill_zone_update,
-        name="skill-zone-update",
-    ),
-    path(
-        "skill-zone-delete/<int:sz_id>",
-        views.skill_zone_delete,
-        name="skill-zone-delete",
-    ),
-    path(
-        "skill-zone-archive/<int:sz_id>",
-        views.skill_zone_archive,
-        name="skill-zone-archive",
-    ),
-    path("skill-zone-filter", views.skill_zone_filter, name="skill-zone-filter"),
-    path(
-        "skill-zone-cand-create/<int:sz_id>",
-        views.skill_zone_candidate_create,
-        name="skill-zone-cand-create",
-    ),
-    path(
-        "skill-zone-cand-card-view/<int:sz_id>/",
-        views.skill_zone_cand_card_view,
-        name="skill-zone-cand-card-view",
-    ),
-    path(
-        "skill-zone-cand-edit/<int:sz_cand_id>/",
-        views.skill_zone_cand_edit,
-        name="skill-zone-cand-edit",
-    ),
-    path(
-        "skill-zone-cand-filter",
-        views.skill_zone_cand_filter,
-        name="skill-zone-cand-filter",
-    ),
-    path(
-        "skill-zone-cand-archive/<int:sz_cand_id>/",
-        views.skill_zone_cand_archive,
-        name="skill-zone-cand-archive",
-    ),
-    path("to-skill-zone/<int:cand_id>", views.to_skill_zone, name="to-skill-zone"),
-    path(
-        "skill-zone-cand-delete/<int:sz_cand_id>",
-        views.skill_zone_cand_delete,
-        name="skill-zone-cand-delete",
-    ),
+
     path("get-template/<int:obj_id>/", get_template, name="get-template"),
     path("get-mail-preview/", get_mail_preview, name="get-mail-preview"),
     path("get-template-hint/", get_template_hint, name="get-template-hint"),
@@ -482,21 +434,7 @@ urlpatterns = [
         views.check_vaccancy,
         name="check-vaccancy",
     ),
-    path(
-        "skills-view/",
-        views.skills_view,
-        name="skills-view",
-    ),
-    path(
-        "create-skills/",
-        views.create_skills,
-        name="create-skills",
-    ),
-    path(
-        "delete-skills/",
-        views.delete_skills,
-        name="delete-skills",
-    ),
+
     path(
         "add-bulk-resume/",
         views.add_bulk_resumes,

@@ -37,7 +37,7 @@
             {% if perms.recruitment.add_candidate or perms.recruitment.change_stage  or perms.recruitment.delete_stage or request.user.employee_get in stage.stage_managers.all or request.user.employee_get in rec.recruitment_managers.all %}
                 <div class="oh-dropdown" x-data="{open: false}">
                     <button class="oh-btn oh-stop-prop oh-btn--transparent oh-accordion-meta__btn" @click="open = !open"
-                    @click.outside="open = false" title="{% trans " Actions" %}">
+                    @click.outside="open = false" title="{% trans "Actions" %}">
                         <ion-icon name="ellipsis-vertical"></ion-icon>
                     </button>
                     <div class="oh-dropdown__menu oh-dropdown__menu--right" x-show="open">

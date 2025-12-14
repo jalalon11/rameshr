@@ -70,21 +70,6 @@ def candidate_photo_upload_path(instance, filename):
     return os.path.join("recruitment/profile/", filename)
 
 
-class Skill(HorillaModel):
-    title = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.title
-
-    def save(self, *args, **kwargs):
-        title = self.title
-        self.title = title.capitalize()
-        super().save(*args, **kwargs)
-
-    class Meta:
-        verbose_name = _("Skill")
-        verbose_name_plural = _("Skills")
-
 
 class Recruitment(HorillaModel):
     """
@@ -143,7 +128,7 @@ class Recruitment(HorillaModel):
         default=django.utils.timezone.now, verbose_name=_("Start Date")
     )
     end_date = models.DateField(blank=True, null=True, verbose_name=_("End Date"))
-    skills = models.ManyToManyField(Skill, blank=True, verbose_name=_("Skills"))
+
 
     objects = HorillaCompanyManager()
     default = models.manager.Manager()
@@ -699,88 +684,6 @@ class StageNote(HorillaModel):
         else:
             return self.candidate_id
 
-
-class SkillZone(HorillaModel):
-    """ "
-    Model for talent pool
-    """
-
-    title = models.CharField(max_length=50, verbose_name="Skill Zone")
-    description = models.TextField(verbose_name=_("Description"), max_length=255)
-    company_id = models.ForeignKey(
-        Company,
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE,
-        verbose_name=_("Company"),
-    )
-    objects = HorillaCompanyManager()
-
-    class Meta:
-        verbose_name = _("Skill Zone")
-        verbose_name_plural = _("Skill Zones")
-
-    def get_active(self):
-        return SkillZoneCandidate.objects.filter(is_active=True, skill_zone_id=self)
-
-    def __str__(self) -> str:
-        return self.title
-
-
-class SkillZoneCandidate(HorillaModel):
-    """
-    Model for saving candidate data's for future recruitment
-    """
-
-    skill_zone_id = models.ForeignKey(
-        SkillZone,
-        verbose_name=_("Skill Zone"),
-        related_name="skillzonecandidate_set",
-        on_delete=models.PROTECT,
-        null=True,
-    )
-    candidate_id = models.ForeignKey(
-        Candidate,
-        on_delete=models.PROTECT,
-        null=True,
-        related_name="skillzonecandidate_set",
-        verbose_name=_("Candidate"),
-    )
-    # job_position_id=models.ForeignKey(
-    #     JobPosition,
-    #     on_delete=models.PROTECT,
-    #     null=True,
-    #     related_name="talent_pool",
-    #     verbose_name=_("Job Position")
-    # )
-
-    reason = models.CharField(max_length=200, verbose_name=_("Reason"))
-    added_on = models.DateField(auto_now_add=True)
-    objects = HorillaCompanyManager(
-        related_company_field="candidate_id__recruitment_id__company_id"
-    )
-
-    def clean(self):
-        # Check for duplicate entries in the database
-        duplicate_exists = (
-            SkillZoneCandidate.objects.filter(
-                candidate_id=self.candidate_id, skill_zone_id=self.skill_zone_id
-            )
-            .exclude(pk=self.pk)
-            .exists()
-        )
-
-        if duplicate_exists:
-            raise ValidationError(
-                _(
-                    f"Candidate {self.candidate_id} already exists in Skill Zone {self.skill_zone_id}."
-                )
-            )
-
-        super().clean()
-
-    def __str__(self) -> str:
-        return str(self.candidate_id.get_full_name())
 
 
 class CandidateRating(HorillaModel):

@@ -12,7 +12,6 @@ from recruitment.models import (
     InterviewSchedule,
     Recruitment,
     RejectedCandidate,
-    SkillZone,
     Stage,
 )
 
@@ -24,5 +23,5 @@ admin.site.register(Recruitment)
 admin.site.register(Candidate)
 admin.site.register(RejectedCandidate)
 admin.site.register(CandidateRating)
-admin.site.register(SkillZone)
+
 admin.site.register(InterviewSchedule)

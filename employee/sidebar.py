@@ -29,24 +29,24 @@ SUBMENUS = [
         "redirect": reverse("document-request-view"),
         "accessibility": "employee.sidebar.document_accessibility",
     },
-    {
-        "menu": trans("Shift Requests"),
-        "redirect": reverse("shift-request-view"),
-    },
-    {
-        "menu": trans("Work Type Requests"),
-        "redirect": reverse("work-type-request-view"),
-    },
-    {
-        "menu": trans("Rotating Shift Assign"),
-        "redirect": reverse("rotating-shift-assign"),
-        "accessibility": "employee.sidebar.rotating_shift_accessibility",
-    },
-    {
-        "menu": trans("Rotating Work Type Assign"),
-        "redirect": reverse("rotating-work-type-assign"),
-        "accessibility": "employee.sidebar.rotating_work_type_accessibility",
-    },
+    # {
+    #     "menu": trans("Shift Requests"),
+    #     "redirect": reverse("shift-request-view"),
+    # },
+    # {
+    #     "menu": trans("Work Type Requests"),
+    #     "redirect": reverse("work-type-request-view"),
+    # },
+    # {
+    #     "menu": trans("Rotating Shift Assign"),
+    #     "redirect": reverse("rotating-shift-assign"),
+    #     "accessibility": "employee.sidebar.rotating_shift_accessibility",
+    # },
+    # {
+    #     "menu": trans("Rotating Work Type Assign"),
+    #     "redirect": reverse("rotating-work-type-assign"),
+    #     "accessibility": "employee.sidebar.rotating_work_type_accessibil  ity",
+    # },
     {
         "menu": trans("Disciplinary Actions"),
         "redirect": reverse("disciplinary-actions"),

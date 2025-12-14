@@ -16,8 +16,6 @@ from recruitment.models import (
     Candidate,
     InterviewSchedule,
     Recruitment,
-    SkillZone,
-    SkillZoneCandidate,
     Stage,
 )
 
@@ -155,8 +153,6 @@ class CandidateFilter(FilterSet):
             "stage_id__stage_managers",
             "stage_id__stage_type",
             "joining_date",
-            "skillzonecandidate_set__skill_zone_id",
-            "skillzonecandidate_set__candidate_id",
             "portal_sent",
             "joining_set",
             "rejected_candidate__reject_reason_id",
@@ -182,7 +178,6 @@ class CandidateFilter(FilterSet):
         models = {
             "recruitment": Recruitment(),
             "interview": InterviewSchedule(),
-            "skill_zone": SkillZoneCandidate(),
         }
 
         interview_date_label = (
@@ -197,9 +192,6 @@ class CandidateFilter(FilterSet):
             "job_position_id__department_id": _("Department"),
             "stage_id__stage_type": _("Stage Type"),
             "stage_id__stage_managers": _("Stage Managers"),
-            "skillzonecandidate_set__skill_zone_id": models["skill_zone"]
-            ._meta.get_field("skill_zone_id")
-            .verbose_name,
             "start_date": models["recruitment"]
             ._meta.get_field("start_date")
             .verbose_name,
@@ -436,148 +428,8 @@ class CandidateReGroup:
         ("probation_end", "Probation End"),
         ("offer_letter_status", "Offer Letter Status"),
         ("rejected_candidate__reject_reason_id", "Reject Reason"),
-        ("skillzonecandidate_set__skill_zone_id", "Skill Zone"),
     ]
 
-
-class SkillZoneFilter(FilterSet):
-    """
-    Skillzone Filter
-    """
-
-    search = django_filters.CharFilter(field_name="title", lookup_expr="icontains")
-
-    class Meta:
-        """
-        class Meta for additional options
-        """
-
-        model = SkillZone
-        fields = [
-            "is_active",
-            "skillzonecandidate_set__candidate_id",
-            "skillzonecandidate_set__candidate_id__recruitment_id",
-            "skillzonecandidate_set__candidate_id__job_position_id",
-            "skillzonecandidate_set__candidate_id__stage_id__stage_type",
-        ]
-
-
-class SkillZoneCandFilter(FilterSet):
-    """
-    Skillzone Candidate FIlter
-    """
-
-    search = django_filters.CharFilter(
-        field_name="candidate_id__name", method="cand_search"
-    )
-    start_date = django_filters.DateFilter(
-        field_name="candidate__id__recruitment_id__start_date",
-        widget=forms.DateInput(attrs={"type": "date"}),
-    )
-    end_date = django_filters.DateFilter(
-        field_name="candidate__id__recruitment_id__end_date",
-        widget=forms.DateInput(attrs={"type": "date"}),
-    )
-    scheduled_from = django_filters.DateFilter(
-        field_name="candidate__id__joining_date",
-        lookup_expr="gte",
-        widget=forms.DateInput(attrs={"type": "date"}),
-        label=_("Joining From"),
-    )
-    probation_end = django_filters.DateFilter(
-        field_name="candidate__id__probation_end",
-        widget=forms.DateInput(attrs={"type": "date"}),
-    )
-    probation_end_till = django_filters.DateFilter(
-        field_name="candidate__id__probation_end",
-        lookup_expr="lte",
-        widget=forms.DateInput(attrs={"type": "date"}),
-        label=_("Probation Till"),
-    )
-    probation_end_from = django_filters.DateFilter(
-        field_name="candidate__id__probation_end",
-        lookup_expr="gte",
-        widget=forms.DateInput(attrs={"type": "date"}),
-        label=_("Probation From"),
-    )
-    schedule_date = django_filters.DateFilter(
-        field_name="candidate__id__schedule_date",
-        widget=forms.DateInput(attrs={"type": "date"}),
-    )
-    scheduled_till = django_filters.DateFilter(
-        field_name="candidate__id__joining_date",
-        lookup_expr="lte",
-        widget=forms.DateInput(attrs={"type": "date"}),
-        label=_("Joining Till"),
-    )
-    recruitment = django_filters.CharFilter(
-        field_name="candidate__id__recruitment_id__title", lookup_expr="icontains"
-    )
-
-    portal_sent = django_filters.BooleanFilter(
-        field_name="candidate__id__onboarding_portal",
-        method="filter_mail_sent",
-        widget=django_filters.widgets.BooleanWidget(),
-        label=_("Portal Sent"),
-    )
-    joining_set = django_filters.BooleanFilter(
-        field_name="candidate__id__joining_date",
-        method="filter_joining_set",
-        widget=django_filters.widgets.BooleanWidget(),
-        label=_("Joining Set"),
-    )
-
-    class Meta:
-        """
-        class Meta for additional options
-        """
-
-        model = SkillZoneCandidate
-        fields = [
-            "is_active",
-            "candidate_id",
-            "candidate_id__recruitment_id",
-            "candidate_id__stage_id",
-            "candidate_id__schedule_date",
-            "candidate_id__email",
-            "candidate_id__mobile",
-            "candidate_id__country",
-            "candidate_id__state",
-            "candidate_id__city",
-            "candidate_id__zip",
-            "candidate_id__gender",
-            "candidate_id__start_onboard",
-            "candidate_id__hired",
-            "candidate_id__canceled",
-            "candidate_id__is_active",
-            "candidate_id__recruitment_id__company_id",
-            "candidate_id__job_position_id",
-            "candidate_id__recruitment_id__closed",
-            "candidate_id__recruitment_id__is_active",
-            "candidate_id__job_position_id__department_id",
-            "candidate_id__recruitment_id__recruitment_managers",
-            "candidate_id__stage_id__stage_managers",
-            "candidate_id__stage_id__stage_type",
-            "candidate_id__joining_date",
-            "candidate_id__skillzonecandidate_set__skill_zone_id",
-            "candidate_id__skillzonecandidate_set__candidate_id",
-            "candidate_id__rejected_candidate__reject_reason_id",
-            "candidate_id__offer_letter_status",
-            "candidate_id__candidate_rating__rating",
-        ]
-        exclude = [
-            "reason",
-            "objects",
-        ]
-
-    def cand_search(self, queryset, _, value):
-        """
-        This method to include candidate when search skill zone
-        """
-        return (
-            queryset.filter(candidate_id__name__icontains=value)
-            | queryset.filter(skill_zone_id__title__icontains=value)
-        ).distinct()
 
 
 class InterviewFilter(FilterSet):

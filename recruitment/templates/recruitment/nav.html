@@ -43,10 +43,3 @@
 
 <div id="filterTagContainerSectionNav" class="oh-titlebar-container__filters mb-2 mt-0"></div>
 
-<div class="oh-modal" id="dynamicCreateModal" role="dialog" aria-hidden="true" style="z-index: 1022;">
-    <div class="oh-modal__dialog" style="max-width: 550px;" id="dynamicCreateModalBody"></div>
-</div>
-
-<span name="" id="dynamicSkills" data-toggle="oh-modal-toggle" data-target="#dynamicCreateModal"
-    hx-get="{% url 'create-skills' %}?dynamic=True" hx-target="#dynamicCreateModalBody">
-</span>

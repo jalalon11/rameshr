@@ -6,13 +6,16 @@
 
     .tooltip {
         position: relative;
-        display: inline-block; /* Ensures that the tooltip container doesn't stretch to the full width */
+        display: inline-block;
+        /* Ensures that the tooltip container doesn't stretch to the full width */
     }
 
     .tooltip .tooltiptext {
         visibility: hidden;
-        width: auto; /* Allow the tooltip width to adjust based on content */
-        max-width: auto; /* Limit the maximum width of the tooltip to prevent it from overflowing */
+        width: auto;
+        /* Allow the tooltip width to adjust based on content */
+        max-width: auto;
+        /* Limit the maximum width of the tooltip to prevent it from overflowing */
         background-color: green;
         color: white;
         text-align: center;
@@ -25,8 +28,10 @@
         transform: translateX(5%);
         opacity: 0;
         transition: opacity 0.3s;
-        white-space: nowrap; /* Prevents the text from wrapping */
-        overflow: hidden; /* Hides any overflowed content */
+        white-space: nowrap;
+        /* Prevents the text from wrapping */
+        overflow: hidden;
+        /* Hides any overflowed content */
         font-size: 15px;
     }
 
@@ -37,197 +42,125 @@
 </style>
 
 {% if recruitment_form.errors %}
-    <!-- form errors  -->
-    <div class="oh-wrapper">
-        <div class="oh-alert-container">
-            {% for field in recruitment_form %}
-            {% if field.errors %}
-                <div class="oh-alert oh-alert--animated oh-alert--danger">
-                    {{ field.label }}: {{ field.errors|join:", " }}
-                </div>
-                {% endif %}
-            {% endfor %}
-            {% for error in recruitment_form.non_field_errors %}
-                <div class="oh-alert oh-alert--animated oh-alert--danger">
-                    {{ error }}
-                </div>
-            {% endfor %}
+<!-- form errors  -->
+<div class="oh-wrapper">
+    <div class="oh-alert-container">
+        {% for field in recruitment_form %}
+        {% if field.errors %}
+        <div class="oh-alert oh-alert--animated oh-alert--danger">
+            {{ field.label }}: {{ field.errors|join:", " }}
         </div>
+        {% endif %}
+        {% endfor %}
+        {% for error in recruitment_form.non_field_errors %}
+        <div class="oh-alert oh-alert--animated oh-alert--danger">
+            {{ error }}
+        </div>
+        {% endfor %}
     </div>
+</div>
 {% endif %}
 {% if stage_form.errors %}
-    <!-- form errors  -->
-    <div class="oh-wrapper">
-        <div class="oh-alert-container">
-            {% for field in stage_form %}
-                {% if field.errors %}
-                    <div class="oh-alert oh-alert--animated oh-alert--danger">
-                        {{ field.label }}: {{ field.errors|join:", " }}
-                    </div>
-                {% endif %}
-            {% endfor %}
-            {% for error in stage_form.non_field_errors %}
-                <div class="oh-alert oh-alert--animated oh-alert--danger">
-                    {{ error }}
-                </div>
-            {% endfor %}
+<!-- form errors  -->
+<div class="oh-wrapper">
+    <div class="oh-alert-container">
+        {% for field in stage_form %}
+        {% if field.errors %}
+        <div class="oh-alert oh-alert--animated oh-alert--danger">
+            {{ field.label }}: {{ field.errors|join:", " }}
         </div>
+        {% endif %}
+        {% endfor %}
+        {% for error in stage_form.non_field_errors %}
+        <div class="oh-alert oh-alert--animated oh-alert--danger">
+            {{ error }}
+        </div>
+        {% endfor %}
     </div>
+</div>
 {% endif %}
 {% if candidate_form.errors %}
-    <!-- form errors  -->
-    <div class="oh-wrapper">
-        <div class="oh-alert-container">
-            {% for field in candidate_form %}
-                {% if field.errors %}
-                    <div class="oh-alert oh-alert--animated oh-alert--danger">
-                        {{ field.label }}: {{ field.errors|join:", " }}
-                    </div>
-                {% endif %}
-            {% endfor %}
-            {% for error in candidate_form.non_field_errors %}
-                <div class="oh-alert oh-alert--animated oh-alert--danger">
-                    {{ error }}
-                </div>
-            {% endfor %}
+<!-- form errors  -->
+<div class="oh-wrapper">
+    <div class="oh-alert-container">
+        {% for field in candidate_form %}
+        {% if field.errors %}
+        <div class="oh-alert oh-alert--animated oh-alert--danger">
+            {{ field.label }}: {{ field.errors|join:", " }}
         </div>
+        {% endif %}
+        {% endfor %}
+        {% for error in candidate_form.non_field_errors %}
+        <div class="oh-alert oh-alert--animated oh-alert--danger">
+            {{ error }}
+        </div>
+        {% endfor %}
     </div>
+</div>
 {% endif %}
 <section class="oh-wrapper oh-main__topbar" x-data="{searchShow: false}">
     <div class="oh-main__titlebar oh-main__titlebar--left">
-        <div
-            class="oh-main__titlebar-title fw-bold mb-0 text-dark"
-            style="cursor: pointer"
-        >
+        <div class="oh-main__titlebar-title fw-bold mb-0 text-dark" style="cursor: pointer">
             {% trans "Recruitments" %}
         </div>
     </div>
-    <form
-        hx-get="{% url 'pipeline-search' %}"
-        onsubmit="event.preventDefault()"
-        hx-target="#pipelineSearchContainer"
-        id="filterForm"
-    >
+    <form hx-get="{% url 'pipeline-search' %}" onsubmit="event.preventDefault()" hx-target="#pipelineSearchContainer"
+        id="filterForm">
         <div class="oh-main__titlebar oh-main__titlebar--right">
-            <div
-                class="oh-input-group oh-input__search-group"
-                :class="searchShow ? 'oh-input__search-group--show' : ''"
-            >
-                <ion-icon
-                    name="search-outline"
-                    class="oh-input-group__icon oh-input-group__icon--left"
-                ></ion-icon>
-                <input
-                    type="text"
-                    id="pipelineSearchInput"
-                    placeholder="{% trans 'Search' %}"
-                    name="candidate_name"
+            <div class="oh-input-group oh-input__search-group"
+                :class="searchShow ? 'oh-input__search-group--show' : ''">
+                <ion-icon name="search-outline" class="oh-input-group__icon oh-input-group__icon--left"></ion-icon>
+                <input type="text" id="pipelineSearchInput" placeholder="{% trans 'Search' %}" name="candidate_name"
                     value="{{request.GET.candidate_name}}"
-                    onkeyup="$(this).closest('form').find('.filterButton').click()"
-                    class="oh-input oh-input__icon"
-                    aria-label="Search Input"
-                />
+                    onkeyup="$(this).closest('form').find('.filterButton').click()" class="oh-input oh-input__icon"
+                    aria-label="Search Input" />
             </div>
 
-            <ul
-                id="viewTypes"
-                class="oh-view-types ml-2"
-                style="margin-bottom: 0"
-            >
+            <ul id="viewTypes" class="oh-view-types ml-2" style="margin-bottom: 0">
                 <input type="hidden" name="view" value="list" />
                 <li class="oh-view-type candidate-view-type">
-                    <div
-                        onclick="$(this).closest('ul').find('[name=view]').val('list');$(this).closest('form').find('.filterButton').click();$('.oh-btn--view-active').removeClass('oh-btn--view-active');$(this).addClass('oh-btn--view-active');"
-                        class="oh-btn oh-btn--view oh-btn--view-active"
-                        title="{% trans 'List' %}"
-                    >
+                    <div onclick="$(this).closest('ul').find('[name=view]').val('list');$(this).closest('form').find('.filterButton').click();$('.oh-btn--view-active').removeClass('oh-btn--view-active');$(this).addClass('oh-btn--view-active');"
+                        class="oh-btn oh-btn--view oh-btn--view-active" title="{% trans 'List' %}">
                         <ion-icon name="list-outline"></ion-icon>
                     </div>
                 </li>
                 <li class="oh-view-type candidate-view-type">
-                    <div
-                        onclick="$(this).closest('ul').find('[name=view]').val('card');$(this).closest('form').find('.filterButton').click();$('.oh-btn--view-active').removeClass('oh-btn--view-active');$(this).addClass('oh-btn--view-active');"
-                        class="oh-btn oh-btn--view"
-                        title="{% trans 'Card' %}"
-                    >
+                    <div onclick="$(this).closest('ul').find('[name=view]').val('card');$(this).closest('form').find('.filterButton').click();$('.oh-btn--view-active').removeClass('oh-btn--view-active');$(this).addClass('oh-btn--view-active');"
+                        class="oh-btn oh-btn--view" title="{% trans 'Card' %}">
                         <ion-icon name="grid-outline"></ion-icon>
                     </div>
                 </li>
             </ul>
 
             <div class="oh-main__titlebar-button-container">
-                <div
-                    id="pipelineFilterDrop"
-                    class="oh-dropdown"
-                    x-data="{open: false}"
-                >
-                    <button
-                        type="button"
-                        class="oh-btn ml-2"
-                        @click="open = !open"
-                    >
+                <div id="pipelineFilterDrop" class="oh-dropdown" x-data="{open: false}">
+                    <button type="button" class="oh-btn ml-2" @click="open = !open">
                         <ion-icon name="filter" class="mr-1"></ion-icon>{% trans "Filter" %}
                         <div id="filterCount"></div>
                     </button>
-                    <div
-                        class="oh-dropdown__menu oh-dropdown__menu--right oh-dropdown__filter p-4"
-                        x-show="open"
-                        @click.outside="open = false"
-                        style="display: none"
-                        @click.
-                    >
+                    <div class="oh-dropdown__menu oh-dropdown__menu--right oh-dropdown__filter p-4" x-show="open"
+                        @click.outside="open = false" style="display: none" @click.>
                         {% include "pipeline/filters.html" %}
                     </div>
                 </div>
             </div>
             <div class="oh-main__titlebar-button-container">
                 {% if perms.recruitment.add_recruitment %}
-                    <button
-                        id="createNewRecruitment"
-                        class="oh-btn oh-btn--secondary"
-                        hx-get="{% url "recruitment-create" %}"
-                        hx-target="#objectCreateModalTarget"
-                        data-toggle="oh-modal-toggle"
-                        data-target="#objectCreateModal"
-                    >
-                        <ion-icon class="me-1" name="add-outline"></ion-icon>
-                        {% trans 'Recruitment' %}
-                    </button>
+                <button id="createNewRecruitment" class="oh-btn oh-btn--secondary" hx-get="{% url "recruitment-create" %}" hx-target="#objectCreateModalTarget" data-toggle="oh-modal-toggle"
+                    data-target="#objectCreateModal">
+                    <ion-icon class="me-1" name="add-outline"></ion-icon>
+                    {% trans 'Recruitment' %}
+                </button>
                 {% endif %}
             </div>
         </div>
     </form>
 </section>
-<div
-    class="oh-modal"
-    id="dynamicCreateModal"
-    role="dialog"
-    aria-hidden="true"
-    style="z-index: 1022"
->
-    <div
-        class="oh-modal__dialog"
-        style="max-width: 550px"
-        id="dynamicCreateModalBody"
-    ></div>
+<div class="oh-modal" id="dynamicCreateModal" role="dialog" aria-hidden="true" style="z-index: 1022">
+    <div class="oh-modal__dialog" style="max-width: 550px" id="dynamicCreateModalBody"></div>
 </div>
-<span
-    name=""
-    id="dynamicSkills"
-    data-toggle="oh-modal-toggle"
-    data-target="#dynamicCreateModal"
-    hx-get="{% url 'create-skills' %}?dynamic=True"
-    hx-target="#dynamicCreateModalBody"
->
-</span>
 
-<div
-    class="oh-modal"
-    id="bulkResumeUpload"
-    role="dialog"
-    aria-labelledby="bulkResumeUpload"
-    aria-hidden="true"
->
+<div class="oh-modal" id="bulkResumeUpload" role="dialog" aria-labelledby="bulkResumeUpload" aria-hidden="true">
     <div class="oh-modal__dialog">
         <div class="oh-modal__dialog-header">
             <h2 class="oh-modal__dialog-title" id="bulkResumeUploadLabel">
@@ -236,56 +169,43 @@
             <button class="oh-modal__close" aria-label="Close">
                 <ion-icon name="close-outline"></ion-icon>
             </button>
-            <div
-                class="oh-modal__dialog-body mb-4 p-0 pt-2"
-                id="bulkResumeUploadBody"
-            >
+            <div class="oh-modal__dialog-body mb-4 p-0 pt-2" id="bulkResumeUploadBody">
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    $(document).ready(function(){
-    	{% include 'select2.js' %}
-    	$('#candidate-search').keyup(function (e) {
-    		$('.candidate-view-type').attr('hx-vals',`{"search":"${$(this).val()}"}`)
-    	  });
-    	  $('.candidate-view-type').click(function (e) {
-    		let view = $(this).attr('data-view');
-    		$('#candidate-search').attr('hx-vals',`{"view":"${view}"}`);
-    	  });
-    	  $("#job_pos_id").select2();
-    	  $("#portal_stage").select2();
-      $("#is_closed").on("change", function() {
-          if ($(this).is(":checked")) {
-              window.location.href = "{% url 'pipeline' %}?view={{view}}&closed=closed";
-          } else {
-              window.location.href = "{% url 'pipeline' %}?view={{view}}";
-          }
-      });
+    $(document).ready(function () {
+        {% include 'select2.js' %}
+        $('#candidate-search').keyup(function (e) {
+            $('.candidate-view-type').attr('hx-vals', `{"search":"${$(this).val()}"}`)
+        });
+        $('.candidate-view-type').click(function (e) {
+            let view = $(this).attr('data-view');
+            $('#candidate-search').attr('hx-vals', `{"view":"${view}"}`);
+        });
+        $("#job_pos_id").select2();
+        $("#portal_stage").select2();
+        $("#is_closed").on("change", function () {
+            if ($(this).is(":checked")) {
+                window.location.href = "{% url 'pipeline' %}?view={{view}}&closed=closed";
+            } else {
+                window.location.href = "{% url 'pipeline' %}?view={{view}}";
+            }
+        });
     })
 </script>
 {% include "filter_tags.html" %}
 <div class="d-flex flex-row-reverse oh-wrapper" id="quickFilters">
-    <span
-        onclick="$('[name=closed]').val('true'); $('[name=closed]').first().change(); $('.filterButton').click()"
-        style="cursor: pointer; margin-left: 10px; margin-right: 10px"
-    >
-        <span
-            class="oh-dot oh-dot--small me-1"
-            style="background-color: orangered"
-        ></span>
+    <span onclick="$('[name=closed]').val('true'); $('[name=closed]').first().change(); $('.filterButton').click()"
+        style="cursor: pointer; margin-left: 10px; margin-right: 10px">
+        <span class="oh-dot oh-dot--small me-1" style="background-color: orangered"></span>
         {% trans "Closed" %}
     </span>
-    <span
-        onclick="$('[name=closed]').val('false');$('[name=closed]').first().change(); $('.filterButton').click()"
-        style="cursor: pointer; margin-left: 10px; margin-right: 10px"
-    >
-        <span
-            class="oh-dot oh-dot--small me-1"
-            style="background-color: yellowgreen"
-        ></span>
+    <span onclick="$('[name=closed]').val('false');$('[name=closed]').first().change(); $('.filterButton').click()"
+        style="cursor: pointer; margin-left: 10px; margin-right: 10px">
+        <span class="oh-dot oh-dot--small me-1" style="background-color: yellowgreen"></span>
         {% trans "Open" %}
     </span>
 </div>
@@ -363,7 +283,7 @@
         function isNextStage(currentStageId, targetStageId, parsedStageOrder) {
             var currentStageIndex = parsedStageOrder.findIndex(stage => stage.id == currentStageId);
             var targetStageIndex = parsedStageOrder.findIndex(stage => stage.id == targetStageId);
-            return targetStageIndex === currentStageIndex + 1 || currentStageIndex === targetStageIndex ;
+            return targetStageIndex === currentStageIndex + 1 || currentStageIndex === targetStageIndex;
         }
 
         htmx.onLoad(function (content) {
@@ -525,7 +445,7 @@
                 data: {
                     order: values,
                 },
-                success: function (response) {},
+                success: function (response) { },
             });
         }
     });

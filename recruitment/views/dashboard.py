@@ -16,7 +16,7 @@ from base.models import Department, JobPosition
 from employee.models import EmployeeWorkInformation
 from horilla.decorators import login_required
 from recruitment.decorators import manager_can_enter
-from recruitment.models import Candidate, Recruitment, SkillZone, Stage
+from recruitment.models import Candidate, Recruitment, Stage
 
 
 def stage_type_candidate_count(rec, stage_type):
@@ -144,7 +144,6 @@ def dashboard(request):
     if total_hired_candidates != 0:
         acceptance_ratio = f"{((accepted_count / total_hired_candidates) * 100):.1f}"
 
-    skill_zone = SkillZone.objects.filter(is_active=True)
     return render(
         request,
         "dashboard/dashboard.html",
@@ -168,7 +167,6 @@ def dashboard(request):
                 onboarding_stage__isnull=False
             ).count(),
             "total_candidates": total_candidates,
-            "skill_zone": skill_zone,
         },
     )
 
