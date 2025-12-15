@@ -31,9 +31,7 @@ class CandidateFilter(FilterSet):
     """
 
     name = django_filters.CharFilter(field_name="name", lookup_expr="icontains")
-    start_onboard = django_filters.CharFilter(
-        method="start_onboard_method", lookup_expr="icontains"
-    )
+
 
     candidate = django_filters.ModelMultipleChoiceFilter(
         queryset=Candidate.objects.all(),
@@ -91,11 +89,7 @@ class CandidateFilter(FilterSet):
         field_name="recruitment_id__title", lookup_expr="icontains"
     )
 
-    portal_sent = django_filters.BooleanFilter(
-        field_name="onboarding_portal",
-        method="filter_mail_sent",
-        widget=django_filters.widgets.BooleanWidget(),
-    )
+
     joining_set = django_filters.BooleanFilter(
         field_name="joining_date",
         method="filter_joining_set",
@@ -113,12 +107,7 @@ class CandidateFilter(FilterSet):
         ).distinct()
         return queryset
 
-    def start_onboard_method(self, queryset, _, value):
-        """
-        This method will include the candidates whether they are on the onboarding pipline stage
-        """
 
-        return queryset.filter(onboarding_stage__isnull=False)
 
     class Meta:
         """
@@ -139,7 +128,7 @@ class CandidateFilter(FilterSet):
             "city",
             "zip",
             "gender",
-            "start_onboard",
+
             "hired",
             "converted",
             "canceled",
@@ -153,7 +142,7 @@ class CandidateFilter(FilterSet):
             "stage_id__stage_managers",
             "stage_id__stage_type",
             "joining_date",
-            "portal_sent",
+
             "joining_set",
             "rejected_candidate__reject_reason_id",
             "offer_letter_status",
@@ -211,8 +200,7 @@ class CandidateFilter(FilterSet):
             if field_name in form_fields:
                 form_fields[field_name].label = label
 
-    def filter_mail_sent(self, queryset, name, value):
-        return queryset.filter(onboarding_portal__isnull=(not value))
+
 
     def filter_joining_set(self, queryset, name, value):
         return queryset.filter(joining_date__isnull=(not value))
@@ -236,9 +224,7 @@ class RecruitmentFilter(FilterSet):
     candidate_name = django_filters.CharFilter(
         field_name="title", method="pipeline_search"
     )
-    search_onboarding = django_filters.CharFilter(
-        field_name="title", method="onboarding_search"
-    )
+
     description = django_filters.CharFilter(lookup_expr="icontains")
     start_date = django_filters.DateFilter(
         field_name="start_date", widget=forms.DateInput(attrs={"type": "date"})
@@ -331,18 +317,7 @@ class RecruitmentFilter(FilterSet):
         )
         return queryset.distinct()
 
-    def onboarding_search(self, queryset, _, value):
-        """
-        This method is used to search recruitment
-        """
-        queryset = (
-            queryset.filter(title__icontains=value)
-            | queryset.filter(onboarding_stage__stage_title__icontains=value)
-            | queryset.filter(
-                candidate__onboarding_stage__candidate_id__name__icontains=value
-            )
-        )
-        return queryset.distinct()
+
 
 
 class StageFilter(FilterSet):

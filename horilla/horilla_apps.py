@@ -44,7 +44,6 @@ if SETTINGS_EMAIL_BACKEND:
 
 SIDEBARS = [
     "recruitment",
-    "onboarding",
     "employee",
     "attendance",
     "leave",

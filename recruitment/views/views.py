@@ -864,7 +864,7 @@ def candidate_stage_update(request, cand_id):
         candidate_obj.hired = stage_obj.stage_type == "hired"
         candidate_obj.canceled = stage_obj.stage_type == "cancelled"
         candidate_obj.schedule_date = schedule_date
-        candidate_obj.start_onboard = False
+
         candidate_obj.save()
         with contextlib.suppress(Exception):
             managers = stage_obj.stage_managers.select_related("employee_user_id")
@@ -1300,7 +1300,7 @@ def candidate(request):
         form = CandidateCreationForm(request.POST, request.FILES)
         if form.is_valid():
             candidate_obj = form.save(commit=False)
-            candidate_obj.start_onboard = False
+
             candidate_obj.source = "software"
             if candidate_obj.stage_id is None:
                 candidate_obj.stage_id = Stage.objects.filter(

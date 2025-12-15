@@ -153,9 +153,7 @@ def dashboard(request):
             "total_hired_candidates": total_hired_candidates,
             "conversion_ratio": conversion_ratio,
             "acceptance_ratio": acceptance_ratio,
-            "onboard_candidates": hired_candidates.filter(
-                onboarding_stage__isnull=False
-            ),
+            "onboard_candidates": Candidate.objects.none(),  # Onboarding removed
             "job_data": job_data,
             "total_vacancy": total_vacancy,
             "recruitment_manager_mapping": recruitment_manager_mapping,
@@ -163,9 +161,7 @@ def dashboard(request):
             "joining": joining,
             "dep_vacancy": dep_vacancy,
             "stage_chart_count": stage_chart_count,
-            "onboarding_count": hired_candidates.filter(
-                onboarding_stage__isnull=False
-            ).count(),
+            "onboarding_count": 0,  # Onboarding removed
             "total_candidates": total_candidates,
         },
     )

@@ -142,11 +142,13 @@ def is_in_task_managers(user):
     This method is used to check the user in the task manager or not
     """
     if apps.is_installed("onboarding"):
-        from onboarding.models import OnboardingTask
-
-        return OnboardingTask.objects.filter(
-            employee_id__employee_user_id=user
-        ).exists()
+        try:
+            from onboarding.models import OnboardingTask
+            return OnboardingTask.objects.filter(
+                employee_id__employee_user_id=user
+            ).exists()
+        except ImportError:
+            return False
     return False
 
 

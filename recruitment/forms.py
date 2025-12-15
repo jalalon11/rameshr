@@ -431,11 +431,9 @@ class CandidateCreationForm(BaseModelForm):
         recruitment = candidate.recruitment_id
         stage = candidate.stage_id
         candidate.hired = False
-        candidate.start_onboard = False
         if stage is not None:
             if stage.stage_type == "hired" and candidate.canceled is False:
                 candidate.hired = True
-                candidate.start_onboard = True
         candidate.recruitment_id = recruitment
         candidate.stage_id = stage
         job_id = self.data.get("job_position_id")
@@ -501,7 +499,6 @@ class ApplicationForm(RegistrationForm):
             "stage_id",
             "schedule_date",
             "referral",
-            "start_onboard",
             "hired",
             "is_active",
             "canceled",

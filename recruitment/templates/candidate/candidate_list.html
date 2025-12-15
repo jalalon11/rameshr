@@ -100,16 +100,22 @@
           </div>
           <div
             class="oh-sticky-table__th {% if request.sort_option.order == '-name' %}arrow-up {% elif request.sort_option.order == 'name' %}arrow-down {% else %} arrow-up-down {% endif %}"
-            hx-target='#section' hx-get="{% url 'search-candidate' %}?{{pd}}&orderby=name&view=list">{% trans "Candidates" %}</div>
+            hx-target='#section' hx-get="{% url 'search-candidate' %}?{{pd}}&orderby=name&view=list">{% trans
+            "Candidates" %}</div>
           <div data-cell-index="1" data-cell-title='{% trans "Email" %}' class="oh-sticky-table__th">{% trans "Email" %}
           </div>
           <div data-cell-index="2" data-cell-title='{% trans "Phone" %}' class="oh-sticky-table__th">{% trans "Phone" %}
           </div>
-          <div data-cell-index="3" data-cell-title='{% trans "Rating" %}' class="oh-sticky-table__th">{% trans "Rating" %}</div>
-          <div data-cell-index="4" data-cell-title='{% trans "Recruitment" %}' class="oh-sticky-table__th">{% trans "Recruitment" %}</div>
-          <div data-cell-index="5" data-cell-title='{% trans "Job Position" %}' class="oh-sticky-table__th">{% trans "Job Position" %}</div>
-          <div data-cell-index="6" data-cell-title='{% trans "Resume" %}' class="oh-sticky-table__th">{% trans "Resume" %}</div>
-          {% if perms.recruitment.change_candidate or perms.recruitment.add_rejectedcandidate or perms.recruitment.add_skillzonecandidate %}
+          <div data-cell-index="3" data-cell-title='{% trans "Rating" %}' class="oh-sticky-table__th">{% trans "Rating"
+            %}</div>
+          <div data-cell-index="4" data-cell-title='{% trans "Recruitment" %}' class="oh-sticky-table__th">{% trans
+            "Recruitment" %}</div>
+          <div data-cell-index="5" data-cell-title='{% trans "Job Position" %}' class="oh-sticky-table__th">{% trans
+            "Job Position" %}</div>
+          <div data-cell-index="6" data-cell-title='{% trans "Resume" %}' class="oh-sticky-table__th">{% trans "Resume"
+            %}</div>
+          {% if perms.recruitment.change_candidate or perms.recruitment.add_rejectedcandidate or
+          perms.recruitment.add_skillzonecandidate %}
           <div class="oh-sticky-table__th" style="width: 230px;">{% trans "Options" %}</div>
           {% endif %}
           {% if perms.recruitment.change_candidate or perms.recruitment.delete_candidate %}
@@ -164,7 +170,7 @@
                 <div class="oh-rate" onmouseenter="event.stopPropagation()">
                   {% for i in "54321" %}
                   <input type="radio" id="star{{i}}{{cand.id}}" name="rating" class="rating-radio" value="{{i}}"
-                    disabled {% if cand.candidate_rating.all|avg_rating:cand == i %} checked {% endif %} />
+                    disabled {% if cand.candidate_rating.all|avg_rating:cand==i %} checked {% endif %} />
                   <label for="star{{i}}{{cand.id}}">5 {% trans "Stars" %}</label>
                   {% endfor %}
                 </div>
@@ -184,12 +190,14 @@
               <span class="oh-file-icon oh-file-icon--pdf"></span> &nbsp {% trans "View" %}
             </a>
           </div>
-          {% if perms.recruitment.change_candidate or perms.recruitment.add_rejectedcandidate or perms.recruitment.add_skillzonecandidate %}
+          {% if perms.recruitment.change_candidate or perms.recruitment.add_rejectedcandidate or
+          perms.recruitment.add_skillzonecandidate %}
           <div class="oh-sticky-table__td">
             <div class="oh-btn-group">
               {% if perms.recruitment.change_candidate %}
               {% if not cand.email in emp_list and not cand.start_onboard %}
-              <a href="{% url 'candidate-conversion' cand.id %}" onclick="return confirm('{% trans "Are you sure you want to convert this candidate into an employee?" %}')" class="oh-btn oh-btn--light-bkg w-100"
+              <a href="{% url 'candidate-conversion' cand.id %}" onclick="return confirm('{% trans " Are you sure you
+                want to convert this candidate into an employee?" %}')" class="oh-btn oh-btn--light-bkg w-100"
                 title='{% trans "To employee" %}' style="padding:0.8rem 1rem">
                 <ion-icon name="person-circle-outline"></ion-icon></a>
               {% elif cand.email in emp_list %}
@@ -213,7 +221,8 @@
               <button type="button" class="oh-btn oh-btn--light-bkg w-100"
                 hx-get="{% url 'add-to-rejected-candidates' %}?candidate_id={{cand.id}}" hx-target="#createTarget"
                 data-toggle="oh-modal-toggle" data-target="#createModal" {% if cand.is_offer_rejected %}
-                style="background: #ff4500a3 !important; color: white;" title="{% trans "Added In Rejected Candidates" %}" {% else %} title="{% trans "Add To Rejected Candidates" %}" {% endif %}>
+                style="background: #ff4500a3 !important; color: white;" title="{% trans " Added In Rejected Candidates"
+                %}" {% else %} title="{% trans " Add To Rejected Candidates" %}" {% endif %}>
                 <ion-icon name="thumbs-down-outline"></ion-icon>
               </button>
               {% endif %}
@@ -240,7 +249,7 @@
               {% if perms.recruitment.delete_candidate %}
               {% if cand.is_active %}
               <form action="{% url 'rec-candidate-archive' cand.id  %}" title="Archive"
-                onsubmit="return confirm('{% trans "Do you want to archive this candidate?" %}')" method='post'
+                onsubmit="return confirm('{% trans " Do you want to archive this candidate?" %}')" method='post'
                 class="w-50">
                 {% csrf_token %}
                 <button type='submit' class="oh-btn oh-btn--danger-outline oh-btn--light-bkg w-100"><ion-icon
@@ -249,7 +258,7 @@
               {% else %}
 
               <form action="{% url 'rec-candidate-archive' cand.id  %}" title="Un Archive"
-                onsubmit="return confirm('{% trans "Do you want to un-archive this candidate?" %}')" method='post'
+                onsubmit="return confirm('{% trans " Do you want to un-archive this candidate?" %}')" method='post'
                 class="w-100">
                 {% csrf_token %}
                 <button type='submit' class="oh-btn oh-btn--danger-outline oh-btn--light-bkg w-100"><ion-icon
@@ -258,7 +267,8 @@
               {% endif %}
               {% endif %}
               {% if perms.recruitment.delete_candidate %}
-              <form action="{% url 'rec-candidate-delete' cand.id  %}" onsubmit="return confirm('{% trans "Do you want to delete this candidate?" %}')" method='post' onsubmit="Are you sure want to delete this candidate?"
+              <form action="{% url 'rec-candidate-delete' cand.id  %}" onsubmit="return confirm('{% trans " Do you want
+                to delete this candidate?" %}')" method='post' onsubmit="Are you sure want to delete this candidate?"
                 class="w-100">
                 {% csrf_token %}
                 <button type='submit' class="oh-btn oh-btn--danger-outline oh-btn--light-bkg w-100"

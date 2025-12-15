@@ -6,10 +6,13 @@ if apps.is_installed("recruitment"):
 
     from base.models import Company
     from horilla.decorators import login_required, permission_required
-    from onboarding.filters import OnboardingStageFilter
-    from onboarding.models import OnboardingStage
     from recruitment.filters import CandidateFilter, RecruitmentFilter
     from recruitment.models import Candidate, Recruitment
+
+    # Conditionally import onboarding models
+    if apps.is_installed("onboarding"):
+        from onboarding.filters import OnboardingStageFilter
+        from onboarding.models import OnboardingStage
 
     @login_required
     @permission_required(perm="recruitment.view_recruitment")
@@ -18,15 +21,21 @@ if apps.is_installed("recruitment"):
         selected_company = request.session.get("selected_company")
         if selected_company != "all":
             company = Company.objects.filter(id=selected_company).first()
+        
+        context = {
+            "company": company,
+            "f": CandidateFilter(),
+            "fr": RecruitmentFilter(),
+        }
+        
+        # Only add onboarding filter if module is installed
+        if apps.is_installed("onboarding"):
+            context["fo"] = OnboardingStageFilter()
+        
         return render(
             request,
             "report/recruitment_report.html",
-            {
-                "company": company,
-                "f": CandidateFilter(),
-                "fr": RecruitmentFilter(),
-                "fo": OnboardingStageFilter(),
-            },
+            context,
         )
 
     @login_required
@@ -140,7 +149,7 @@ if apps.is_installed("recruitment"):
                 }
                 for item in data
             ]
-        elif model_type == "onboarding":
+        elif model_type == "onboarding" and apps.is_installed("onboarding"):
             qs = OnboardingStage.objects.all()
             filter_obj = OnboardingStageFilter(request.GET, queryset=qs)
             qs = filter_obj.qs
