@@ -48,7 +48,7 @@ SIDEBARS = [
     "attendance",
     "leave",
     "payroll",
-    "offboarding",
+    # "offboarding",  # Hidden from sidebar
 ]
 
 WHITE_LABELLING = False
