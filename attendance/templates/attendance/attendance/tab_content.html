@@ -486,6 +486,14 @@
             </div>
             <!-- end of empty page -->
         {% endif %}
+        <!-- Floating Validate All Button -->
+        {% if perms.attendance.change_attendance or request.user|is_reportingmanager %}
+            <div id="bulkValidateButton" style="display: none; position: fixed; bottom: 30px; right: 30px; z-index: 1000;">
+                <button class="oh-btn oh-btn--info" style="padding: 15px 30px; font-size: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border-radius: 8px;">
+                    <span id="bulkValidateCount">{% trans "Validate All" %}</span>
+                </button>
+            </div>
+        {% endif %}
     </div>
 </div>
 <!-- end of To Validate attendance -->
@@ -838,5 +846,71 @@
         $("#fieldContainerTable").find("[type=checkbox]").prop("checked", true)
     }
     $("[type=checkbox]").change()
+
+    // Handle bulk validate button visibility and click
+    function updateBulkValidateButton() {
+        var checkedRows = $(".validate-row").filter(":checked");
+        var bulkButton = $("#bulkValidateButton");
+        var countSpan = $("#bulkValidateCount");
+        
+        if (checkedRows.length > 0) {
+            bulkButton.fadeIn(200);
+            countSpan.text("Validate All (" + checkedRows.length + ")");
+        } else {
+            bulkButton.fadeOut(200);
+        }
+    }
+
+    // Listen for checkbox changes
+    $(document).on('change', '.validate-row, .validate', function() {
+        updateBulkValidateButton();
+    });
+
+    // Handle bulk validate button click
+    $(document).on('click', '#bulkValidateButton', function(e) {
+        e.preventDefault();
+        var languageCode = null;
+        getCurrentLanguageCode(function (code) {
+            languageCode = code;
+            var confirmMessage = validateMessages[languageCode];
+            var checkedRows = $(".validate-row").filter(":checked");
+            
+            if (checkedRows.length === 0) {
+                return;
+            }
+            
+            Swal.fire({
+                text: confirmMessage,
+                icon: "info",
+                showCancelButton: true,
+                confirmButtonColor: "#008000",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Confirm",
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    ids = [];
+                    checkedRows.each(function () {
+                        ids.push($(this).attr("id"));
+                    });
+                    $.ajax({
+                        type: "POST",
+                        url: "/attendance/validate-bulk-attendance",
+                        data: {
+                            csrfmiddlewaretoken: getCookie("csrftoken"),
+                            ids: JSON.stringify(ids),
+                        },
+                        success: function (response, textStatus, jqXHR) {
+                            if (jqXHR.status === 200) {
+                                location.reload();
+                            }
+                        },
+                    });
+                }
+            });
+        });
+    });
+
+    // Initial check on page load
+    updateBulkValidateButton();
 
 </script>

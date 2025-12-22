@@ -49,7 +49,7 @@
                         alt=""
                         style="width: 25px; height: 25px; margin-right: 3px"
                     />
-                    {% trans "Work type request" %}
+                    {% trans "Assign Work type" %}
                 </div>
                 <button
                     class="oh-btn oh-btn--secondary-outline oh-stop-prop oh-accordion-meta__btn p-2"
@@ -67,7 +67,7 @@
                     ></ion-icon>
                 </button>
             </li>
-            <li class="oh-tabs__tab" data-target="#shift_tab_3">
+            <li class="oh-tabs__tab" data-target="#shift_tab_3" style="display: none;">
                 <div>
                     <img
                         src="{% static 'images/ui/work-from-home.png' %}"
@@ -106,7 +106,7 @@
                             opacity: 0.5;
                         "
                     />
-                    {% trans "Shift request" %}
+                    {% trans "Assign Shift" %}
                 </div>
                 <button
                     class="oh-btn oh-btn--secondary-outline oh-stop-prop oh-accordion-meta__btn p-2"
@@ -124,7 +124,7 @@
                     ></ion-icon>
                 </button>
             </li>
-            <li class="oh-tabs__tab" data-target="#shift_tab_2">
+            <li class="oh-tabs__tab" data-target="#shift_tab_2" style="display: none;">
                 <div>
                     <img
                         src="{% static 'images/ui/shift.png' %}"
@@ -393,7 +393,7 @@
                     </div>
                 {% endif %}
             </div>
-            <div class="oh-tabs__content" id="shift_tab_2">
+            <div class="oh-tabs__content" id="shift_tab_2" style="display: none;">
                 {% if rshift_assign %}
                     <div class="oh-sticky-table">
                         <div class="oh-sticky-table__table oh-table--sortable">
@@ -623,7 +623,7 @@
                     </div>
                 {% endif %}
             </div>
-            <div class="oh-tabs__content" id="shift_tab_3">
+            <div class="oh-tabs__content" id="shift_tab_3" style="display: none;">
                 {% if rwork_type_assign %}
                     <div class="oh-sticky-table">
                         <div class="oh-sticky-table__table oh-table--sortable">

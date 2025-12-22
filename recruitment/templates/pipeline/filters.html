@@ -40,14 +40,14 @@
         </div>
 
         <div class="col-sm-12 col-md-12 col-lg-6">
-          <div class="oh-input-group">
+          <!-- <div class="oh-input-group">
             <label
               class="oh-label"
               for="{{rec_filter_obj.form.company_id.id_for_label}}"
               >{% trans 'Company' %}</label
             >
             {{ rec_filter_obj.form.company_id }}
-          </div>
+          </div> -->
           <div class="oh-input-group">
             <label
               class="oh-label"
@@ -112,11 +112,7 @@
         <div class="col-sm-12 col-md-12 col-lg-6">
           <div class="oh-input-group">
             <label class="oh-label">{% trans 'Country' %}</label>
-            <select
-              name="country"
-              class="oh-select-2 w-100 country"
-              id="country"
-            ></select>
+            <select name="country" class="oh-select-2 w-100 country" id="country" data-selected="Philippines"></select>
           </div>
           <div class="col-sm-12 col-md-12 col-lg-12 mb-2">
             <div class="oh-input-group">
