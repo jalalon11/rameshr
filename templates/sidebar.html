@@ -245,13 +245,13 @@ function initializeSummernote(candId,searchWords,) {
           >
           <ul class="oh-sidebar__submenu-items">
             {% if "leave"|app_installed and perms.base.view_multipleapprovalcondition %}
-            <li class="oh-sidebar__submenu-item">
+            <!-- <li class="oh-sidebar__submenu-item">
               <a
                 href="{% url 'multiple-approval-condition' %}"
                 class="oh-sidebar__submenu-link"
                 >{% trans "Multiple Approvals" %}</a
               >
-            </li>
+            </li> -->
             {% endif %}
             {% if perms.base.view_horillamailtemplate %}
             <li class="oh-sidebar__submenu-item">
@@ -292,13 +292,13 @@ function initializeSummernote(candId,searchWords,) {
             </li>
             {% endif %}
             {% if "leave"|app_installed %}
-            <li class="oh-sidebar__submenu-item">
+            <!-- <li class="oh-sidebar__submenu-item">
               <a
                 href="{% url 'restrict-view' %}"
                 class="oh-sidebar__submenu-link"
                 >{% trans "Restrict Leaves" %}</a
               >
-            </li>
+            </li> -->
             {% endif %}
           </ul>
         </div>

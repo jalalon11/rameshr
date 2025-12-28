@@ -37,10 +37,10 @@ SUBMENUS = [
         "redirect": reverse("assign-view"),
         "accessibility": "leave.sidebar.assign_accessibility",
     },
-    {
-        "menu": trans("Leave Allocation Request"),
-        "redirect": reverse("leave-allocation-request-view"),
-    },
+#    {
+#        "menu": trans("Leave Allocation Request"),
+#        "redirect": reverse("leave-allocation-request-view"),
+#    },
     {
         "menu": trans("Holidays"),
         "redirect": reverse("holiday-view"),
