@@ -447,9 +447,7 @@ class CandidateCreationForm(BaseModelForm):
         Render the form fields as HTML table rows with Bootstrap styling.
         """
         context = {"form": self}
-        table_html = render_to_string(
-            "candidate/candidate_create_form_as_p.html", context
-        )
+        table_html = render_to_string("common_form.html", context)
         return table_html
 
     def clean(self):
