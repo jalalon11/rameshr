@@ -111,6 +111,17 @@ if apps.is_installed("attendance"):
             "accessibility": "leave.sidebar.componstory_accessibility",
         }
     )
+    SUBMENUS.append(
+        {
+            "menu": trans("Undertime Deductions"),
+            "redirect": reverse("undertime-deduction-list"),
+            "accessibility": "leave.sidebar.undertime_deduction_accessibility",
+        }
+    )
 
     def componstory_accessibility(request, submenu, user_perms, *args, **kwargs):
         return is_compensatory(request.user)
+
+    def undertime_deduction_accessibility(request, submenu, user_perms, *args, **kwargs):
+        return request.user.has_perm("leave.view_undertimeleavededuction")
+

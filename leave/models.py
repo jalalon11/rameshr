@@ -448,13 +448,102 @@ class AvailableLeave(HorillaModel):
 
     # Resetting carryforward days
 
-    def update_carryforward(self):
-        if self.leave_type_id.carryforward_type != "no carryforward":
-            if self.leave_type_id.carryforward_max >= self.total_leave_days:
-                self.carryforward_days = self.total_leave_days
+    def can_go_negative(self):
+        """
+        Check if this leave type allows negative balance.
+        Only allowed if reset is enabled OR carryforward is enabled.
+        This allows the system to deduct leave credits even when balance is zero,
+        knowing that credits will be replenished on reset.
+        """
+        leave_type = self.leave_type_id
+        return leave_type.reset or leave_type.carryforward_type != "no carryforward"
+
+    def deduct_credits(self, amount: float) -> dict:
+        """
+        Deduct leave credits from this allocation.
+        Allows negative balance only for leave types with reset/carryforward.
+        
+        Args:
+            amount: Amount of credits to deduct
+        
+        Returns:
+            dict with success status and balance details
+        """
+        if amount <= 0:
+            return {"success": False, "error": "Amount must be positive"}
+        
+        balance_before = self.available_days
+        allow_negative = self.can_go_negative()
+        
+        # Check if deduction is possible for leave types that don't allow negative
+        if not allow_negative and self.total_leave_days < amount:
+            return {
+                "success": False,
+                "error": "Insufficient leave credits",
+                "available": self.total_leave_days,
+                "requested": amount
+            }
+        
+        # Perform deduction - first from available, then carryforward, then go negative
+        if self.available_days >= amount:
+            self.available_days -= amount
+        elif self.available_days > 0:
+            # Use available first, then carryforward
+            remaining = amount - self.available_days
+            self.available_days = 0
+            if self.carryforward_days >= remaining:
+                self.carryforward_days -= remaining
             else:
-                self.carryforward_days = self.leave_type_id.carryforward_max
-        self.available_days = self.leave_type_id.total_days
+                # Exhaust carryforward and go negative
+                remaining -= self.carryforward_days
+                self.carryforward_days = 0
+                self.available_days = -remaining
+        else:
+            # Already zero or negative, just deduct more
+            self.available_days -= amount
+        
+        self.save()
+        
+        return {
+            "success": True,
+            "balance_before": balance_before,
+            "balance_after": self.available_days,
+            "amount_deducted": amount
+        }
+
+    def update_carryforward(self):
+        """
+        Reset leave credits. If employee has negative balance,
+        new credits offset the debt first.
+        
+        Example: -0.5 balance + 1.25 replenish = 0.75 new balance
+        """
+        leave_type = self.leave_type_id
+        
+        # Handle carryforward of positive balance only
+        if leave_type.carryforward_type != "no carryforward":
+            # Only carryforward positive balance
+            if self.total_leave_days > 0:
+                if leave_type.carryforward_max >= self.total_leave_days:
+                    self.carryforward_days = self.total_leave_days
+                else:
+                    self.carryforward_days = leave_type.carryforward_max
+            else:
+                # Negative balance - no carryforward
+                self.carryforward_days = 0
+        else:
+            self.carryforward_days = 0
+        
+        # Replenish available days, accounting for negative balance
+        replenish_amount = leave_type.total_days
+        
+        if self.available_days < 0:
+            # Negative balance - offset with new credits
+            # Example: -0.5 + 1.25 = 0.75
+            self.available_days = self.available_days + replenish_amount
+        else:
+            # Normal reset
+            self.available_days = replenish_amount
 
     # Setting the reset date for carryforward leaves
 
@@ -555,10 +644,9 @@ class AvailableLeave(HorillaModel):
                 expiry_date = self.leave_type_id.carryforward_expire_date
             self.expired_date = expiry_date
 
-        # Compute total_leave_days and ensure carryforward_days >= 0
-        self.total_leave_days = round(
-            max(self.available_days + self.carryforward_days, 0), 3
-        )
+        # Compute total_leave_days - allow negative for available_days
+        # total_leave_days represents the actual usable balance (can be negative)
+        self.total_leave_days = round(self.available_days + self.carryforward_days, 3)
         self.carryforward_days = round(max(self.carryforward_days, 0), 3)
 
     def save(self, *args, **kwargs):
@@ -1550,3 +1638,81 @@ if apps.is_installed("attendance"):
 
 #     thread = threading.Thread(target=update_leaves)
 #     thread.start()
+
+
+class UndertimeLeaveDeduction(HorillaModel):
+    """
+    Tracks leave credit deductions for employee undertime/absence.
+    This creates an audit trail for HR-initiated deductions.
+    
+    The deduction is calculated based on fractional days:
+    - 1 minute = 1/480 ≈ 0.002 credits (based on 8-hour workday)
+    - 1 hour = 0.125 credits
+    - 8 hours = 1.0 credit
+    """
+    employee_id = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        verbose_name=_("Employee"),
+        related_name="undertime_deductions"
+    )
+    leave_type_id = models.ForeignKey(
+        LeaveType,
+        on_delete=models.PROTECT,
+        verbose_name=_("Leave Type"),
+        help_text=_("The leave type from which credits were deducted")
+    )
+    attendance_id = models.ForeignKey(
+        "attendance.Attendance",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("Related Attendance")
+    )
+    deduction_date = models.DateField(
+        verbose_name=_("Deduction Date")
+    )
+    undertime_minutes = models.FloatField(
+        verbose_name=_("Undertime (Minutes)"),
+        help_text=_("Total undertime in minutes")
+    )
+    credits_deducted = models.FloatField(
+        verbose_name=_("Credits Deducted"),
+        help_text=_("Leave credits deducted (formula: minutes ÷ 480)")
+    )
+    balance_before = models.FloatField(
+        default=0,
+        verbose_name=_("Balance Before"),
+        help_text=_("Leave balance before deduction")
+    )
+    balance_after = models.FloatField(
+        default=0,
+        verbose_name=_("Balance After"),
+        help_text=_("Leave balance after deduction")
+    )
+    processed_by = models.ForeignKey(
+        Employee,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="processed_deductions",
+        verbose_name=_("Processed By")
+    )
+    notes = models.TextField(
+        blank=True,
+        null=True,
+        max_length=500,
+        verbose_name=_("Notes")
+    )
+    objects = HorillaCompanyManager(
+        related_company_field="employee_id__employee_work_info__company_id"
+    )
+    
+    class Meta:
+        ordering = ["-deduction_date", "-created_at"]
+        verbose_name = _("Undertime Leave Deduction")
+        verbose_name_plural = _("Undertime Leave Deductions")
+    
+    def __str__(self):
+        return f"{self.employee_id} - {self.credits_deducted:.3f} credits on {self.deduction_date}"
+

@@ -5353,3 +5353,512 @@ def leave_allocation_approve(request):
             # "current_date":date.today(),
         },
     )
+
+
+# =============================================================================
+# UNDERTIME LEAVE DEDUCTION VIEWS
+# =============================================================================
+
+@login_required
+@permission_required("leave.view_undertimeleavededuction")
+def undertime_deduction_list(request):
+    """
+    List all undertime leave deductions with filtering.
+    """
+    deductions = UndertimeLeaveDeduction.objects.all()
+    
+    # Apply filters
+    employee_id = request.GET.get("employee_id")
+    leave_type_id = request.GET.get("leave_type_id")
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+    
+    if employee_id:
+        deductions = deductions.filter(employee_id=employee_id)
+    if leave_type_id:
+        deductions = deductions.filter(leave_type_id=leave_type_id)
+    if start_date:
+        deductions = deductions.filter(deduction_date__gte=start_date)
+    if end_date:
+        deductions = deductions.filter(deduction_date__lte=end_date)
+    
+    page_number = request.GET.get("page")
+    deductions = paginator_qry(deductions, page_number)
+    
+    context = {
+        "deductions": deductions,
+        "employees": Employee.objects.filter(is_active=True),
+        "leave_types": LeaveType.objects.filter(reset=True),
+        "pd": request.GET.urlencode(),
+    }
+    
+    return render(request, "leave/undertime_deduction/list.html", context)
+
+
+@login_required
+@permission_required("leave.add_undertimeleavededuction")
+def undertime_deduction_form(request, attendance_id=None):
+    """
+    Process undertime leave deduction form.
+    HR can select which leave type to deduct from.
+    """
+    from attendance.models import Attendance
+    from leave.services.leave_credit_deduction import (
+        calculate_credits,
+        get_attendance_undertime,
+        process_deduction,
+        get_employee_leave_types_for_deduction,
+    )
+    
+    attendance = None
+    employee = None
+    undertime_minutes = 0
+    estimated_credits = 0
+    leave_types = []
+    
+    if attendance_id:
+        try:
+            attendance = Attendance.objects.get(id=attendance_id)
+            employee = attendance.employee_id
+            undertime_minutes = round(get_attendance_undertime(attendance), 1)
+            estimated_credits = calculate_credits(undertime_minutes)
+            leave_types = get_employee_leave_types_for_deduction(employee)
+        except Attendance.DoesNotExist:
+            messages.error(request, _("Attendance record not found."))
+            return redirect("undertime-deduction-list")
+    
+    if request.method == "POST":
+        try:
+            emp_id = request.POST.get("employee_id")
+            leave_type_id = request.POST.get("leave_type_id")
+            undertime_mins = float(request.POST.get("undertime_minutes", 0))
+            notes = request.POST.get("notes", "")
+            
+            emp = Employee.objects.get(id=emp_id)
+            leave_type = LeaveType.objects.get(id=leave_type_id)
+            
+            result = process_deduction(
+                employee=emp,
+                leave_type=leave_type,
+                undertime_minutes=undertime_mins,
+                attendance=attendance,
+                processed_by=request.user.employee_get,
+                notes=notes
+            )
+            
+            if result["success"]:
+                messages.success(
+                    request,
+                    _(f"Successfully deducted {result['credits_deducted']:.3f} credits from {leave_type.name}. "
+                      f"New balance: {result['balance_after']:.3f}")
+                )
+                return redirect("undertime-deduction-list")
+            else:
+                messages.error(request, _(result.get("error", "Deduction failed")))
+        except Employee.DoesNotExist:
+            messages.error(request, _("Employee not found."))
+        except LeaveType.DoesNotExist:
+            messages.error(request, _("Leave type not found."))
+        except ValueError as e:
+            messages.error(request, _(f"Invalid input: {e}"))
+        except Exception as e:
+            messages.error(request, _(f"Error processing deduction: {e}"))
+    
+    context = {
+        "attendance": attendance,
+        "employee": employee,
+        "undertime_minutes": undertime_minutes,
+        "estimated_credits": estimated_credits,
+        "leave_types": leave_types,
+        "employees": Employee.objects.filter(is_active=True),
+        "all_leave_types": LeaveType.objects.filter(reset=True),
+    }
+    
+    return render(request, "leave/undertime_deduction/form.html", context)
+
+
+@login_required
+@permission_required("leave.add_undertimeleavededuction")
+def undertime_deduction_create(request):
+    """
+    Create undertime deduction with optional linked attendance.
+    Shows auto-suggestions for lates/absences based on employee attendance.
+    """
+    from leave.services.leave_credit_deduction import (
+        calculate_credits,
+        process_deduction,
+        get_employee_leave_types_for_deduction,
+    )
+    from attendance.models import Attendance
+    
+    if request.method == "POST":
+        try:
+            emp_id = request.POST.get("employee_id")
+            leave_type_id = request.POST.get("leave_type_id")
+            undertime_mins = float(request.POST.get("undertime_minutes", 0))
+            deduction_date = request.POST.get("deduction_date")
+            notes = request.POST.get("notes", "")
+            attendance_id = request.POST.get("attendance_id")
+            
+            emp = Employee.objects.get(id=emp_id)
+            leave_type = LeaveType.objects.get(id=leave_type_id)
+            
+            # Get linked attendance if provided (handle 'null' string from JS)
+            attendance = None
+            if attendance_id and attendance_id not in ('', 'null', 'None'):
+                try:
+                    attendance = Attendance.objects.get(id=int(attendance_id))
+                except (Attendance.DoesNotExist, ValueError, TypeError):
+                    pass
+            
+            result = process_deduction(
+                employee=emp,
+                leave_type=leave_type,
+                undertime_minutes=undertime_mins,
+                attendance=attendance,
+                processed_by=request.user.employee_get,
+                notes=notes
+            )
+            
+            if result["success"]:
+                # Update the deduction date if provided and no attendance link
+                if deduction_date and not attendance:
+                    record = result["record"]
+                    record.deduction_date = deduction_date
+                    record.save()
+                
+                messages.success(
+                    request,
+                    _(f"Successfully deducted {result['credits_deducted']:.3f} credits from {leave_type.name}. "
+                      f"New balance: {result['balance_after']:.3f}")
+                )
+                return redirect("undertime-deduction-list")
+            else:
+                messages.error(request, _(result.get("error", "Deduction failed")))
+        except Exception as e:
+            messages.error(request, _(f"Error: {e}"))
+    
+
+    # For GET request, prepare employee leave types via AJAX
+    employee_id = request.GET.get("employee_id")
+    leave_types = []
+    if employee_id:
+        try:
+            emp = Employee.objects.get(id=employee_id)
+            leave_types = get_employee_leave_types_for_deduction(emp)
+        except:
+            pass
+    
+    context = {
+        "employees": Employee.objects.filter(is_active=True),
+        "leave_types": leave_types,
+        "selected_employee_id": employee_id,
+    }
+    
+    return render(request, "leave/undertime_deduction/create.html", context)
+
+
+@login_required
+@permission_required("leave.delete_undertimeleavededuction")
+def undertime_deduction_delete(request, pk):
+    """
+    Delete an undertime deduction record and restore the leave credits.
+    """
+    from leave.models import AvailableLeave
+    
+    try:
+        deduction = UndertimeLeaveDeduction.objects.get(id=pk)
+        employee_name = str(deduction.employee_id)
+        credits = deduction.credits_deducted
+        leave_type = deduction.leave_type_id
+        employee = deduction.employee_id
+        
+        # Restore the leave credits
+        try:
+            available_leave = AvailableLeave.objects.get(
+                employee_id=employee,
+                leave_type_id=leave_type
+            )
+            # Add back the deducted credits
+            available_leave.available_days += credits
+            available_leave.save()
+            
+            # Delete the deduction record
+            deduction.delete()
+            
+            messages.success(
+                request,
+                _(f"Deleted deduction record for {employee_name}. "
+                  f"Restored {credits:.3f} credits to {leave_type.name}. "
+                  f"New balance: {available_leave.available_days:.3f}")
+            )
+        except AvailableLeave.DoesNotExist:
+            # No AvailableLeave record exists, just delete the deduction
+            deduction.delete()
+            messages.warning(
+                request,
+                _(f"Deleted deduction record for {employee_name} ({credits:.3f} credits). "
+                  "Warning: Could not restore credits - no leave balance record found.")
+            )
+    except UndertimeLeaveDeduction.DoesNotExist:
+        messages.error(request, _("Deduction record not found."))
+    
+    return redirect("undertime-deduction-list")
+
+
+
+@login_required
+@hx_request_required
+def get_employee_leave_types_for_deduction_ajax(request):
+    """
+    AJAX endpoint to get leave types available for deduction for an employee.
+    """
+    from leave.services.leave_credit_deduction import get_employee_leave_types_for_deduction
+    
+    employee_id = request.GET.get("employee_id")
+    if not employee_id:
+        return JsonResponse({"leave_types": []})
+    
+    try:
+        employee = Employee.objects.get(id=employee_id)
+        leave_types = get_employee_leave_types_for_deduction(employee)
+        
+        # Get current balances for each leave type
+        leave_type_data = []
+        for lt in leave_types:
+            try:
+                available = AvailableLeave.objects.get(
+                    employee_id=employee,
+                    leave_type_id=lt
+                )
+                balance = available.total_leave_days
+            except AvailableLeave.DoesNotExist:
+                balance = 0
+            
+            leave_type_data.append({
+                "id": lt.id,
+                "name": lt.name,
+                "balance": round(balance, 3),
+            })
+        
+        return JsonResponse({"leave_types": leave_type_data})
+    except Employee.DoesNotExist:
+        return JsonResponse({"leave_types": [], "error": "Employee not found"})
+
+
+@login_required
+def calculate_deduction_preview(request):
+    """
+    AJAX endpoint to preview the deduction calculation.
+    """
+    from leave.services.leave_credit_deduction import calculate_credits
+    
+    try:
+        undertime_minutes = float(request.GET.get("undertime_minutes", 0))
+        credits = calculate_credits(undertime_minutes)
+        
+        # Format as hours and minutes for display
+        hours = int(undertime_minutes // 60)
+        minutes = int(undertime_minutes % 60)
+        
+        return JsonResponse({
+            "credits": round(credits, 3),
+            "undertime_formatted": f"{hours}h {minutes}m" if hours else f"{minutes}m",
+        })
+    except:
+        return JsonResponse({"credits": 0, "undertime_formatted": "0m"})
+
+
+@login_required
+def get_employee_attendance_with_undertime(request):
+    """
+    AJAX endpoint to fetch employee's attendance records with undertime and absences.
+    Returns lates and absences for auto-suggestion when creating deduction.
+    Limited to current month only. Uses employee's actual shift hours.
+    """
+    from attendance.models import Attendance, WorkRecords
+    from attendance.methods.utils import strtime_seconds
+    from base.models import EmployeeShiftSchedule
+    from leave.services.leave_credit_deduction import calculate_credits
+    from leave.models import UndertimeLeaveDeduction
+    
+    employee_id = request.GET.get("employee_id")
+    if not employee_id:
+        return JsonResponse({"records": []})
+    
+    try:
+        employee = Employee.objects.get(id=employee_id)
+        
+        # Get employee's shift
+        shift = employee.get_shift()
+        shift_name = shift.employee_shift if shift else "Default"
+        
+        # Build a map of day name -> minimum working minutes for this employee's shift
+        day_to_min_hour = {}
+        if shift:
+            schedules = EmployeeShiftSchedule.objects.filter(shift_id=shift)
+            for schedule in schedules:
+                day_name = schedule.day.day.lower()
+                min_seconds = strtime_seconds(schedule.minimum_working_hour)
+                day_to_min_hour[day_name] = min_seconds / 60  # Convert to minutes
+        
+        # Default to 480 minutes (8 hours) if no shift schedule found
+        default_min_minutes = 480.0
+        
+        # Get current month date range
+        today = date.today()
+        month_start = today.replace(day=1)
+        
+        # Get already processed dates for this employee
+        processed_dates = set(UndertimeLeaveDeduction.objects.filter(
+            employee_id=employee,
+            deduction_date__gte=month_start
+        ).values_list("deduction_date", flat=True))
+        
+        processed_att_ids = set(UndertimeLeaveDeduction.objects.filter(
+            employee_id=employee,
+            attendance_id__isnull=False
+        ).values_list("attendance_id", flat=True))
+        
+        records = []
+        
+        # 1. Get absences from WorkRecords (no attendance record at all)
+        # Include ABS (Absent), CONF (Conflict), and DFT (Draft - pending validation, no clock-in)
+        absent_records = WorkRecords.objects.filter(
+            employee_id=employee,
+            date__gte=month_start,
+            date__lte=today,
+            work_record_type__in=["ABS", "CONF", "DFT"],  # Absent, Conflict, or Draft (no attendance)
+            is_attendance_record=False  # Only include if NO attendance was recorded
+        ).order_by("-date")
+        
+        for wr in absent_records:
+            # Get the day of week for this date to find correct shift hours
+            day_name = wr.date.strftime("%A").lower()
+            undertime_minutes = day_to_min_hour.get(day_name, default_min_minutes)
+            is_processed = wr.date in processed_dates
+            
+            # Skip if no working hours for this day (weekend/off day)
+            if undertime_minutes == 0:
+                continue
+            
+            # Format undertime for display
+            hours = int(undertime_minutes // 60)
+            mins = int(undertime_minutes % 60)
+            undertime_str = f"{hours}h {mins}m (Full Day)"
+            
+            # Determine type label based on work_record_type
+            if wr.work_record_type == "DFT":
+                type_label = "No Clock-in"
+            elif wr.work_record_type == "CONF":
+                type_label = "Conflict"
+            else:
+                type_label = "Full Day Absent"
+            
+            records.append({
+                "attendance_id": None,
+                "work_record_id": wr.id,
+                "date": wr.date.strftime("%Y-%m-%d"),
+                "date_display": wr.date.strftime("%b %d, %Y"),
+                "type": type_label,
+                "undertime_minutes": undertime_minutes,
+                "undertime_display": undertime_str,
+                "credits": calculate_credits(undertime_minutes),
+                "clock_in": "-",
+                "clock_out": "-",
+                "already_processed": is_processed,
+                "shift": shift_name,
+            })
+        
+        # 2. Get half-day absences from WorkRecords
+        halfday_records = WorkRecords.objects.filter(
+            employee_id=employee,
+            date__gte=month_start,
+            date__lte=today,
+            work_record_type="HDP"  # Half Day Present
+        ).order_by("-date")
+        
+        for wr in halfday_records:
+            # Check if there's undertime in this half-day
+            if wr.at_work_second and wr.min_hour_second:
+                if wr.at_work_second < wr.min_hour_second:
+                    undertime_seconds = wr.min_hour_second - wr.at_work_second
+                    undertime_minutes = undertime_seconds / 60
+                    is_processed = wr.date in processed_dates
+                    
+                    hours = int(undertime_minutes // 60)
+                    mins = int(undertime_minutes % 60)
+                    undertime_str = f"{hours}h {mins}m" if hours else f"{mins} min"
+                    
+                    records.append({
+                        "attendance_id": wr.attendance_id.id if wr.attendance_id else None,
+                        "work_record_id": wr.id,
+                        "date": wr.date.strftime("%Y-%m-%d"),
+                        "date_display": wr.date.strftime("%b %d, %Y"),
+                        "type": "Half Day",
+                        "undertime_minutes": round(undertime_minutes, 1),
+                        "undertime_display": undertime_str,
+                        "credits": calculate_credits(undertime_minutes),
+                        "clock_in": str(wr.attendance_id.attendance_clock_in) if wr.attendance_id and wr.attendance_id.attendance_clock_in else "-",
+                        "clock_out": str(wr.attendance_id.attendance_clock_out) if wr.attendance_id and wr.attendance_id.attendance_clock_out else "-",
+                        "already_processed": is_processed,
+                        "shift": shift_name,
+                    })
+        
+        # 3. Get attendance records with undertime (lates)
+        attendances = Attendance.objects.filter(
+            employee_id=employee,
+            attendance_date__gte=month_start,
+            attendance_date__lte=today,
+            attendance_validated=True
+        ).order_by("-attendance_date")
+        
+        # Track dates we've already added from WorkRecords
+        added_dates = set(r["date"] for r in records)
+        
+        for att in attendances:
+            # Skip if already added from WorkRecords
+            if att.attendance_date.strftime("%Y-%m-%d") in added_dates:
+                continue
+                
+            # Calculate undertime
+            min_seconds = strtime_seconds(att.minimum_hour)
+            worked_seconds = att.at_work_second or 0
+            
+            if worked_seconds < min_seconds:
+                undertime_seconds = min_seconds - worked_seconds
+                undertime_minutes = undertime_seconds / 60
+                
+                # Only show if there's meaningful undertime (at least 1 minute)
+                if undertime_minutes >= 1:
+                    # Format undertime for display
+                    hours = int(undertime_minutes // 60)
+                    mins = int(undertime_minutes % 60)
+                    undertime_str = f"{hours}h {mins}m" if hours else f"{mins} min"
+                    
+                    is_processed = att.id in processed_att_ids or att.attendance_date in processed_dates
+                    
+                    records.append({
+                        "attendance_id": att.id,
+                        "work_record_id": None,
+                        "date": att.attendance_date.strftime("%Y-%m-%d"),
+                        "date_display": att.attendance_date.strftime("%b %d, %Y"),
+                        "type": "Late/Undertime",
+                        "undertime_minutes": round(undertime_minutes, 1),
+                        "undertime_display": undertime_str,
+                        "credits": calculate_credits(undertime_minutes),
+                        "clock_in": str(att.attendance_clock_in) if att.attendance_clock_in else "-",
+                        "clock_out": str(att.attendance_clock_out) if att.attendance_clock_out else "-",
+                        "already_processed": is_processed,
+                        "shift": shift_name,
+                    })
+        
+        # Sort by date descending
+        records.sort(key=lambda x: x["date"], reverse=True)
+        
+        return JsonResponse({"records": records, "shift": shift_name})
+    except Employee.DoesNotExist:
+        return JsonResponse({"records": [], "error": "Employee not found"})
+
+
+

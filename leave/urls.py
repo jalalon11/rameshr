@@ -453,5 +453,47 @@ if apps.is_installed("attendance"):
                 views.delete_comment_compensatory_file,
                 name="delete-compensatory-comment-file",
             ),
+            # Undertime Leave Deduction URLs
+            path(
+                "undertime-deduction-list",
+                views.undertime_deduction_list,
+                name="undertime-deduction-list",
+            ),
+            path(
+                "undertime-deduction-form/",
+                views.undertime_deduction_form,
+                name="undertime-deduction-form",
+            ),
+            path(
+                "undertime-deduction-form/<int:attendance_id>/",
+                views.undertime_deduction_form,
+                name="undertime-deduction-form-attendance",
+            ),
+            path(
+                "undertime-deduction-create/",
+                views.undertime_deduction_create,
+                name="undertime-deduction-create",
+            ),
+            path(
+                "undertime-deduction-delete/<int:pk>/",
+                views.undertime_deduction_delete,
+                name="undertime-deduction-delete",
+            ),
+            path(
+                "get-employee-leave-types-for-deduction/",
+                views.get_employee_leave_types_for_deduction_ajax,
+                name="get-employee-leave-types-for-deduction",
+            ),
+            path(
+                "calculate-deduction-preview/",
+                views.calculate_deduction_preview,
+                name="calculate-deduction-preview",
+            ),
+            path(
+                "get-employee-attendance-undertime/",
+                views.get_employee_attendance_with_undertime,
+                name="get-employee-attendance-undertime",
+            ),
         ]
     )
+

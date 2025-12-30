@@ -1,0 +1,405 @@
+{% extends 'index.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+<section class="oh-wrapper oh-main__topbar">
+    <div class="oh-main__titlebar oh-main__titlebar--left">
+        <h1 class="oh-main__titlebar-title fw-bold">
+            {% trans "Create Leave Deduction" %}
+        </h1>
+    </div>
+    <div class="oh-main__titlebar oh-main__titlebar--right">
+        <a href="{% url 'undertime-deduction-list' %}" class="oh-btn oh-btn--secondary">
+            <ion-icon name="arrow-back-outline" class="me-1"></ion-icon>
+            {% trans "Back to List" %}
+        </a>
+    </div>
+</section>
+
+<div class="oh-wrapper">
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="oh-alert-container">
+            <div class="oh-alert oh-alert--animated {{message.tags}}">
+                {{ message }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="oh-card">
+                <div class="oh-card__header">
+                    <h5 class="oh-card__title">{% trans "Deduction Details" %}</h5>
+                </div>
+                <div class="oh-card__body">
+                    <form method="post" id="deductionForm">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="oh-input-group mb-3">
+                                    <label class="oh-label">{% trans "Employee" %} <span
+                                            class="text-danger">*</span></label>
+                                    <select name="employee_id" id="employeeSelect" class="oh-select oh-select--lg w-100"
+                                        required>
+                                        <option value="">{% trans "Select Employee" %}</option>
+                                        {% for emp in employees %}
+                                        <option value="{{ emp.id }}">{{ emp }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="oh-input-group mb-3">
+                                    <label class="oh-label">{% trans "Leave Type" %} <span
+                                            class="text-danger">*</span></label>
+                                    <select name="leave_type_id" id="leaveTypeSelect"
+                                        class="oh-select oh-select--lg w-100" required>
+                                        <option value="">{% trans "Select Leave Type" %}</option>
+                                        {% for lt in leave_types %}
+                                        <option value="{{ lt.id }}">{{ lt.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <small class="text-muted">{% trans "Select employee first to load balances"%}</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lates/Absences Suggestions -->
+                        <div id="attendanceSuggestions" class="mb-3" style="display: none;">
+                            <div class="oh-card oh-card--light">
+                                <div class="oh-card__header d-flex justify-content-between align-items-center py-2">
+                                    <span>
+                                        <ion-icon name="calendar-outline" class="me-1"></ion-icon>
+                                        {% trans "Recent Lates & Absences" %}
+                                        <span id="shiftBadge" class="oh-badge oh-badge--info ms-2"
+                                            style="display: none;"></span>
+                                    </span>
+                                    <small class="text-muted">{% trans "Click to auto-fill" %}</small>
+                                </div>
+                                <div class="oh-card__body p-0">
+                                    <div id="suggestionsList" style="max-height: 250px; overflow-y: auto;">
+                                        <p class="text-muted mb-0 p-3">{% trans "Loading..." %}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="noSuggestionsMsg" class="oh-alert oh-alert--info mb-3" style="display: none;">
+                            <ion-icon name="checkmark-circle-outline" class="me-2"></ion-icon>
+                            {% trans "No unprocessed lates or absences found for this employee this month." %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="oh-input-group mb-3">
+                                    <label class="oh-label">{% trans "Deduction Date" %} <span
+                                            class="text-danger">*</span></label>
+                                    <input type="date" name="deduction_date" id="deductionDate" class="oh-input w-100"
+                                        required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="oh-input-group mb-3">
+                                    <label class="oh-label">{% trans "Undertime (Minutes)" %} <span
+                                            class="text-danger">*</span></label>
+                                    <input type="number" name="undertime_minutes" id="undertimeMinutes"
+                                        class="oh-input w-100" step="0.1" min="1" required>
+                                    <small class="text-muted">{% trans "Formula: credits = minutes / 480" %}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="oh-input-group mb-3">
+                                    <label class="oh-label">{% trans "Estimated Deduction" %}</label>
+                                    <div class="d-flex align-items-center">
+                                        <input type="text" class="oh-input w-100" id="estimatedCredits" value="0.000"
+                                            readonly style="background: #f8f9fa;">
+                                        <span class="ms-2 text-muted">{% trans "credits" %}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="oh-input-group mb-3">
+                            <label class="oh-label">{% trans "Notes" %}</label>
+                            <textarea name="notes" id="notesField" class="oh-input w-100" rows="2"
+                                placeholder="{% trans 'Reason for deduction...' %}"></textarea>
+                        </div>
+
+                        <input type="hidden" name="attendance_id" id="attendanceIdField" value="">
+
+                        <div class="d-flex gap-2 pt-3 border-top">
+                            <button type="submit" class="oh-btn oh-btn--secondary oh-btn--shadow">
+                                <ion-icon name="remove-circle-outline" class="me-1"></ion-icon>
+                                {% trans "Create Deduction" %}
+                            </button>
+                            <a href="{% url 'undertime-deduction-list' %}" class="oh-btn oh-btn--light">
+                                {% trans "Cancel" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Leave Balances Card -->
+            <div class="oh-card mb-3" id="balanceCard" style="display: none;">
+                <div class="oh-card__header">
+                    <h5 class="oh-card__title">
+                        <ion-icon name="wallet-outline" class="me-1"></ion-icon>
+                        {% trans "Leave Balances" %}
+                    </h5>
+                </div>
+                <div class="oh-card__body" id="leaveBalances"></div>
+            </div>
+
+            <!-- Reference Card -->
+            <div class="oh-card">
+                <div class="oh-card__header">
+                    <h5 class="oh-card__title">
+                        <ion-icon name="calculator-outline" class="me-1"></ion-icon>
+                        {% trans "Quick Reference" %}
+                    </h5>
+                </div>
+                <div class="oh-card__body">
+                    <div class="oh-sticky-table">
+                        <div class="oh-sticky-table__table">
+                            <div class="oh-sticky-table__thead">
+                                <div class="oh-sticky-table__tr">
+                                    <div class="oh-sticky-table__th">{% trans "Undertime" %}</div>
+                                    <div class="oh-sticky-table__th">{% trans "Credits" %}</div>
+                                </div>
+                            </div>
+                            <div class="oh-sticky-table__tbody">
+                                <div class="oh-sticky-table__tr">
+                                    <div class="oh-sticky-table__td">15 min</div>
+                                    <div class="oh-sticky-table__td">0.031</div>
+                                </div>
+                                <div class="oh-sticky-table__tr">
+                                    <div class="oh-sticky-table__td">30 min</div>
+                                    <div class="oh-sticky-table__td">0.063</div>
+                                </div>
+                                <div class="oh-sticky-table__tr">
+                                    <div class="oh-sticky-table__td">1 hour</div>
+                                    <div class="oh-sticky-table__td">0.125</div>
+                                </div>
+                                <div class="oh-sticky-table__tr">
+                                    <div class="oh-sticky-table__td">2 hours</div>
+                                    <div class="oh-sticky-table__td">0.250</div>
+                                </div>
+                                <div class="oh-sticky-table__tr">
+                                    <div class="oh-sticky-table__td">4 hours</div>
+                                    <div class="oh-sticky-table__td">0.500</div>
+                                </div>
+                                <div class="oh-sticky-table__tr">
+                                    <div class="oh-sticky-table__td">8 hours</div>
+                                    <div class="oh-sticky-table__td"><strong>1.000</strong></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <small class="text-muted">{% trans "Formula:" %} <code>credits = minutes / 480</code></small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .suggestion-item {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--oh-border-color, #eee);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .suggestion-item:hover {
+        background-color: var(--oh-bg-secondary, #f8f9fa);
+    }
+
+    .suggestion-item:last-child {
+        border-bottom: none;
+    }
+
+    .suggestion-item.processed {
+        opacity: 0.6;
+        background-color: #f5f5f5;
+    }
+
+    .suggestion-item.selected {
+        background-color: rgba(13, 110, 253, 0.1);
+        border-left: 3px solid #0d6efd;
+    }
+
+    .suggestion-item .badge-late {
+        background-color: #ffc107;
+        color: #000;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 500;
+    }
+
+    .suggestion-item .badge-absent {
+        background-color: #dc3545;
+        color: #fff;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 500;
+    }
+
+    .suggestion-item .badge-processed {
+        background-color: #6c757d;
+        color: #fff;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+    }
+
+    .oh-card--light {
+        background: #fafafa;
+        border: 1px solid #e9ecef;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var undertimeInput = document.getElementById('undertimeMinutes');
+        var estimatedCredits = document.getElementById('estimatedCredits');
+        var employeeSelect = document.getElementById('employeeSelect');
+        var leaveTypeSelect = document.getElementById('leaveTypeSelect');
+        var balanceCard = document.getElementById('balanceCard');
+        var leaveBalances = document.getElementById('leaveBalances');
+        var attendanceSuggestions = document.getElementById('attendanceSuggestions');
+        var suggestionsList = document.getElementById('suggestionsList');
+        var noSuggestionsMsg = document.getElementById('noSuggestionsMsg');
+        var deductionDate = document.getElementById('deductionDate');
+        var notesField = document.getElementById('notesField');
+        var attendanceIdField = document.getElementById('attendanceIdField');
+
+        // Calculate credits when undertime changes
+        undertimeInput.addEventListener('input', function () {
+            var minutes = parseFloat(this.value) || 0;
+            var credits = (minutes / 480).toFixed(3);
+            estimatedCredits.value = credits;
+        });
+
+        // When employee changes
+        employeeSelect.addEventListener('change', function () {
+            var employeeId = this.value;
+            attendanceSuggestions.style.display = 'none';
+            noSuggestionsMsg.style.display = 'none';
+            balanceCard.style.display = 'none';
+            attendanceIdField.value = '';
+
+            if (!employeeId) {
+                leaveTypeSelect.innerHTML = '<option value="">{% trans "Select Leave Type" %}</option>';
+                return;
+            }
+
+            // Fetch leave types
+            fetch('/leave/get-employee-leave-types-for-deduction/?employee_id=' + employeeId, {
+                headers: { 'HX-Request': 'true' }
+            })
+                .then(function (response) { return response.json(); })
+                .then(function (data) {
+                    var options = '<option value="">{% trans "Select Leave Type" %}</option>';
+                    var balancesHtml = '';
+                    data.leave_types.forEach(function (lt) {
+                        options += '<option value="' + lt.id + '">' + lt.name + ' (' + lt.balance + ')</option>';
+                        var badgeClass = lt.balance < 0 ? 'oh-badge oh-badge--danger' : 'oh-badge oh-badge--success';
+                        balancesHtml += '<div class="d-flex justify-content-between align-items-center mb-2">' +
+                            '<span>' + lt.name + '</span>' +
+                            '<span class="' + badgeClass + '">' + lt.balance + '</span></div>';
+                    });
+                    leaveTypeSelect.innerHTML = options;
+                    if (balancesHtml) {
+                        leaveBalances.innerHTML = balancesHtml;
+                        balanceCard.style.display = 'block';
+                    }
+                });
+
+            // Fetch attendance suggestions (lates/absences)
+            suggestionsList.innerHTML = '<p class="text-muted mb-0 p-3">{% trans "Loading..." %}</p>';
+            attendanceSuggestions.style.display = 'block';
+
+            fetch('/leave/get-employee-attendance-undertime/?employee_id=' + employeeId)
+                .then(function (response) { return response.json(); })
+                .then(function (data) {
+                    // Show shift badge
+                    var shiftBadge = document.getElementById('shiftBadge');
+                    if (data.shift) {
+                        shiftBadge.textContent = data.shift;
+                        shiftBadge.style.display = 'inline';
+                    } else {
+                        shiftBadge.style.display = 'none';
+                    }
+
+                    if (data.records && data.records.length > 0) {
+                        var html = '';
+                        data.records.forEach(function (record) {
+                            var badgeClass = (record.type.includes('Absent') || record.type.includes('No Clock-in') || record.type.includes('Conflict')) ? 'badge-absent' : 'badge-late';
+                            var processedBadge = record.already_processed ? '<span class="badge-processed ms-1">Processed</span>' : '';
+                            var itemClass = record.already_processed ? 'suggestion-item processed' : 'suggestion-item';
+
+                            html += '<div class="' + itemClass + '" ' +
+                                'data-date="' + record.date + '" ' +
+                                'data-minutes="' + record.undertime_minutes + '" ' +
+                                'data-credits="' + record.credits + '" ' +
+                                'data-attendance-id="' + record.attendance_id + '" ' +
+                                'data-type="' + record.type + '">' +
+                                '<div class="d-flex justify-content-between align-items-center">' +
+                                '<div>' +
+                                '<strong>' + record.date_display + '</strong>' +
+                                '<span class="' + badgeClass + ' ms-2">' + record.type + '</span>' +
+                                processedBadge +
+                                '</div>' +
+                                '<div class="text-end">' +
+                                '<span class="text-danger fw-bold">' + record.undertime_display + '</span>' +
+                                '<br><small class="text-muted">' + record.credits + ' credits</small>' +
+                                '</div>' +
+                                '</div>' +
+                                '<small class="text-muted">In: ' + record.clock_in + ' | Out: ' + record.clock_out + '</small>' +
+                                '</div>';
+                        });
+                        suggestionsList.innerHTML = html;
+
+                        // Add click handlers to suggestions
+                        document.querySelectorAll('.suggestion-item').forEach(function (item) {
+                            item.addEventListener('click', function () {
+                                var dateVal = this.getAttribute('data-date');
+                                var minutesVal = this.getAttribute('data-minutes');
+                                var creditsVal = this.getAttribute('data-credits');
+                                var attId = this.getAttribute('data-attendance-id');
+                                var typeVal = this.getAttribute('data-type');
+
+                                deductionDate.value = dateVal;
+                                undertimeInput.value = minutesVal;
+                                estimatedCredits.value = creditsVal;
+                                attendanceIdField.value = attId;
+                                notesField.value = typeVal + ' on ' + dateVal;
+
+                                // Highlight selected item
+                                document.querySelectorAll('.suggestion-item').forEach(function (el) {
+                                    el.classList.remove('selected');
+                                });
+                                this.classList.add('selected');
+                            });
+                        });
+                    } else {
+                        attendanceSuggestions.style.display = 'none';
+                        noSuggestionsMsg.style.display = 'flex';
+                    }
+                });
+        });
+    });
+</script>
+{% endblock %}
