@@ -461,54 +461,65 @@ class AvailableLeave(HorillaModel):
     def deduct_credits(self, amount: float) -> dict:
         """
         Deduct leave credits from this allocation.
-        Allows negative balance only for leave types with reset/carryforward.
+        Does NOT allow negative balance - performs partial deduction if insufficient.
         
         Args:
             amount: Amount of credits to deduct
         
         Returns:
-            dict with success status and balance details
+            dict with success status and balance details:
+            - success: bool
+            - balance_before: float
+            - balance_after: float
+            - amount_requested: float (original request)
+            - amount_deducted: float (what was actually deducted)
+            - is_partial: bool (True if only partial deduction was possible)
         """
         if amount <= 0:
             return {"success": False, "error": "Amount must be positive"}
         
-        balance_before = self.available_days
-        allow_negative = self.can_go_negative()
+        balance_before = self.total_leave_days
+        total_available = max(0, self.available_days) + max(0, self.carryforward_days)
         
-        # Check if deduction is possible for leave types that don't allow negative
-        if not allow_negative and self.total_leave_days < amount:
+        # If no credits available at all
+        if total_available <= 0:
             return {
                 "success": False,
-                "error": "Insufficient leave credits",
-                "available": self.total_leave_days,
-                "requested": amount
+                "error": "No leave credits available",
+                "balance_before": balance_before,
+                "balance_after": self.total_leave_days,
+                "amount_requested": amount,
+                "amount_deducted": 0,
+                "is_partial": False
             }
         
-        # Perform deduction - first from available, then carryforward, then go negative
-        if self.available_days >= amount:
-            self.available_days -= amount
+        # Calculate how much we can actually deduct (cap at available)
+        actual_deduction = min(amount, total_available)
+        is_partial = actual_deduction < amount
+        
+        # Perform deduction - first from available, then carryforward
+        remaining_to_deduct = actual_deduction
+        
+        if self.available_days >= remaining_to_deduct:
+            self.available_days -= remaining_to_deduct
         elif self.available_days > 0:
             # Use available first, then carryforward
-            remaining = amount - self.available_days
+            remaining_to_deduct -= self.available_days
             self.available_days = 0
-            if self.carryforward_days >= remaining:
-                self.carryforward_days -= remaining
-            else:
-                # Exhaust carryforward and go negative
-                remaining -= self.carryforward_days
-                self.carryforward_days = 0
-                self.available_days = -remaining
+            self.carryforward_days = max(0, self.carryforward_days - remaining_to_deduct)
         else:
-            # Already zero or negative, just deduct more
-            self.available_days -= amount
+            # available_days is 0 or negative, use carryforward only
+            self.carryforward_days = max(0, self.carryforward_days - remaining_to_deduct)
         
         self.save()
         
         return {
             "success": True,
             "balance_before": balance_before,
-            "balance_after": self.available_days,
-            "amount_deducted": amount
+            "balance_after": self.total_leave_days,
+            "amount_requested": amount,
+            "amount_deducted": actual_deduction,
+            "is_partial": is_partial
         }
 
     def update_carryforward(self):
@@ -1674,11 +1685,31 @@ class UndertimeLeaveDeduction(HorillaModel):
     )
     undertime_minutes = models.FloatField(
         verbose_name=_("Undertime (Minutes)"),
-        help_text=_("Total undertime in minutes")
+        help_text=_("Total undertime in minutes (original request)")
+    )
+    undertime_covered_minutes = models.FloatField(
+        default=0,
+        verbose_name=_("Covered Minutes"),
+        help_text=_("Undertime covered by leave credits (paid as regular)")
+    )
+    undertime_uncovered_minutes = models.FloatField(
+        default=0,
+        verbose_name=_("Uncovered Minutes"),
+        help_text=_("Undertime NOT covered by leave (will be Loss of Pay)")
+    )
+    credits_requested = models.FloatField(
+        default=0,
+        verbose_name=_("Credits Requested"),
+        help_text=_("Original credits requested for deduction")
     )
     credits_deducted = models.FloatField(
         verbose_name=_("Credits Deducted"),
-        help_text=_("Leave credits deducted (formula: minutes ÷ 480)")
+        help_text=_("Actual leave credits deducted")
+    )
+    is_partial_deduction = models.BooleanField(
+        default=False,
+        verbose_name=_("Partial Deduction"),
+        help_text=_("True if only partial deduction was possible due to insufficient balance")
     )
     balance_before = models.FloatField(
         default=0,

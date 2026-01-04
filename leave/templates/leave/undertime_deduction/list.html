@@ -130,10 +130,29 @@
                     <div class="oh-sticky-table__td">
                         {% widthratio deduction.undertime_minutes 60 1 as hours %}
                         {% widthratio deduction.undertime_minutes|add:0 1 1 as mins_raw %}
-                        {{ deduction.undertime_minutes|floatformat:0 }} min
+                        <div>
+                            {{ deduction.undertime_minutes|floatformat:0 }} min
+                            {% if deduction.is_partial_deduction %}
+                            <span class="oh-badge oh-badge--warning ms-1"
+                                title="{% trans 'Partial deduction - insufficient balance' %}">
+                                {% trans "Partial" %}
+                            </span>
+                            {% endif %}
+                        </div>
+                        {% if deduction.is_partial_deduction %}
+                        <small class="text-muted">
+                            <span class="text-success">✓ {{ deduction.undertime_covered_minutes|floatformat:0 }}
+                                min</span> |
+                            <span class="text-danger">✗ {{ deduction.undertime_uncovered_minutes|floatformat:0 }}
+                                min</span>
+                        </small>
+                        {% endif %}
                     </div>
                     <div class="oh-sticky-table__td">
                         <span class="oh-badge oh-badge--danger">-{{ deduction.credits_deducted|floatformat:3 }}</span>
+                        {% if deduction.is_partial_deduction and deduction.credits_requested %}
+                        <br><small class="text-muted">of {{ deduction.credits_requested|floatformat:3 }}</small>
+                        {% endif %}
                     </div>
                     <div class="oh-sticky-table__td">{{ deduction.balance_before|floatformat:3 }}</div>
                     <div class="oh-sticky-table__td">

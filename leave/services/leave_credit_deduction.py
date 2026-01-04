@@ -79,11 +79,12 @@ def process_deduction(
 ) -> dict:
     """
     Process leave credit deduction for an employee.
+    Supports PARTIAL deductions when balance is insufficient.
     
     This function:
     1. Calculates the leave credits to deduct
-    2. Deducts from the employee's leave allocation
-    3. Records the deduction in UndertimeLeaveDeduction for audit
+    2. Deducts from the employee's leave allocation (partial if insufficient)
+    3. Records the deduction with covered vs uncovered time
     
     Args:
         employee: Employee to deduct from
@@ -97,7 +98,11 @@ def process_deduction(
         dict with result details:
         - success: bool
         - error: str (if failed)
-        - amount_deducted: float (if successful)
+        - credits_requested: float (original request)
+        - credits_deducted: float (what was actually deducted)
+        - is_partial: bool (True if partial deduction)
+        - covered_minutes: float (minutes covered by leave)
+        - uncovered_minutes: float (minutes remaining as LOP)
         - balance_before: float
         - balance_after: float
         - record: UndertimeLeaveDeduction instance
@@ -105,9 +110,9 @@ def process_deduction(
     AvailableLeave = apps.get_model("leave", "AvailableLeave")
     UndertimeLeaveDeduction = apps.get_model("leave", "UndertimeLeaveDeduction")
     
-    # Calculate credit amount to deduct
-    credits = calculate_credits(undertime_minutes)
-    if credits <= 0:
+    # Calculate credit amount requested
+    credits_requested = calculate_credits(undertime_minutes)
+    if credits_requested <= 0:
         return {"success": False, "error": "No deduction needed (undertime is zero)"}
     
     # Get employee's leave allocation for the selected leave type
@@ -122,18 +127,19 @@ def process_deduction(
             "error": f"Employee {employee} has no allocation for {leave_type.name}"
         }
     
-    # Check if leave type allows negative balance (has reset or carryforward)
-    if not available.can_go_negative() and available.total_leave_days < credits:
-        return {
-            "success": False,
-            "error": f"Insufficient leave credits. Available: {available.total_leave_days:.3f}, Required: {credits:.3f}. This leave type doesn't allow negative balance."
-        }
-    
-    # Perform the deduction
-    result = available.deduct_credits(credits)
+    # Perform the deduction (may be partial)
+    result = available.deduct_credits(credits_requested)
     
     if not result["success"]:
         return result
+    
+    # Calculate covered vs uncovered minutes
+    credits_deducted = result["amount_deducted"]
+    is_partial = result["is_partial"]
+    
+    # Convert credits back to minutes (credits * 480 = minutes)
+    covered_minutes = round(credits_deducted * MINUTES_PER_CREDIT, 1)
+    uncovered_minutes = round(undertime_minutes - covered_minutes, 1)
     
     # Determine the deduction date
     if attendance:
@@ -148,25 +154,37 @@ def process_deduction(
         attendance_id=attendance,
         deduction_date=deduction_date,
         undertime_minutes=undertime_minutes,
-        credits_deducted=credits,
+        undertime_covered_minutes=covered_minutes,
+        undertime_uncovered_minutes=uncovered_minutes,
+        credits_requested=credits_requested,
+        credits_deducted=credits_deducted,
+        is_partial_deduction=is_partial,
         balance_before=result["balance_before"],
         balance_after=result["balance_after"],
         processed_by=processed_by,
         notes=notes
     )
     
-    result["record"] = record
-    result["credits_deducted"] = credits
-    return result
+    return {
+        "success": True,
+        "credits_requested": credits_requested,
+        "credits_deducted": credits_deducted,
+        "is_partial": is_partial,
+        "covered_minutes": covered_minutes,
+        "uncovered_minutes": uncovered_minutes,
+        "balance_before": result["balance_before"],
+        "balance_after": result["balance_after"],
+        "record": record
+    }
 
 
 def get_employee_leave_types_for_deduction(employee):
     """
     Get leave types available for undertime deduction for an employee.
     
-    Only returns leave types that:
-    1. The employee has an allocation for
-    2. Allow negative balance (have reset or carryforward enabled)
+    Returns all leave types that the employee has an allocation for.
+    Since partial deductions are now supported, any leave type with
+    available balance can be used (even if balance is low).
     
     Args:
         employee: Employee model instance
@@ -178,15 +196,11 @@ def get_employee_leave_types_for_deduction(employee):
     AvailableLeave = apps.get_model("leave", "AvailableLeave")
     
     # Get leave type IDs that the employee has allocations for
+    # Include all types with positive balance
     allocated_type_ids = AvailableLeave.objects.filter(
-        employee_id=employee
+        employee_id=employee,
+        total_leave_days__gt=0  # Only show types with available credits
     ).values_list("leave_type_id", flat=True)
     
-    # Filter to only leave types that support negative balance
-    # (reset=True OR carryforward_type != "no carryforward")
-    from django.db.models import Q
-    return LeaveType.objects.filter(
-        id__in=allocated_type_ids
-    ).filter(
-        Q(reset=True) | ~Q(carryforward_type="no carryforward")
-    )
+    return LeaveType.objects.filter(id__in=allocated_type_ids)
+

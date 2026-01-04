@@ -201,11 +201,42 @@ def hourly_computation(employee, wage, start_date, end_date):
             undertime_seconds = (min_hours - worked_hours) * 3600
             total_undertime_seconds += undertime_seconds
 
-    # Calculate basic pay based on actual worked hours
+    # Check for leave credit deductions that cover undertime
+    # If leave credits were used, add covered time to worked hours (treated as paid)
+    # and reduce the undertime accordingly
+    covered_seconds = 0
+    if apps.is_installed("leave"):
+        try:
+            UndertimeLeaveDeduction = get_horilla_model_class(
+                app_label="leave", model="undertimeleavededuction"
+            )
+            
+            # Get all leave deductions for this employee in this period
+            leave_deductions = UndertimeLeaveDeduction.objects.filter(
+                employee_id=employee,
+                deduction_date__range=(start_date, end_date)
+            )
+            
+            # Sum up covered minutes (converted to seconds)
+            covered_seconds = sum(
+                (getattr(d, 'undertime_covered_minutes', 0) or 0) * 60 
+                for d in leave_deductions
+            )
+            
+            # Add covered time to worked hours (treated as paid leave time)
+            total_worked_seconds += covered_seconds
+            
+            # Reduce undertime by covered amount
+            total_undertime_seconds = max(0, total_undertime_seconds - covered_seconds)
+        except Exception:
+            # If leave module has issues, continue without adjustment
+            pass
+
+    # Calculate basic pay based on actual worked hours + covered leave time
     wage_in_second = wage / 3600
     basic_pay = float(f"{(wage_in_second * total_worked_seconds):.2f}")
 
-    # Calculate undertime deduction
+    # Calculate undertime deduction (now reduced by leave credit coverage)
     undertime_deduction = float(f"{(wage_in_second * total_undertime_seconds):.2f}")
 
     return {

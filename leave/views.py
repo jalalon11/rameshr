@@ -5527,11 +5527,23 @@ def undertime_deduction_create(request):
                     record.deduction_date = deduction_date
                     record.save()
                 
-                messages.success(
-                    request,
-                    _(f"Successfully deducted {result['credits_deducted']:.3f} credits from {leave_type.name}. "
-                      f"New balance: {result['balance_after']:.3f}")
-                )
+                # Build appropriate success message based on partial vs full deduction
+                if result.get("is_partial"):
+                    # Partial deduction - show covered and uncovered info
+                    msg = _(
+                        f"Partial Deduction: Used {result['credits_deducted']:.3f} credits from {leave_type.name}. "
+                        f"Covered: {result['covered_minutes']:.0f} min | "
+                        f"Uncovered (Loss of Pay): {result['uncovered_minutes']:.0f} min. "
+                        f"New balance: {result['balance_after']:.3f}"
+                    )
+                    messages.warning(request, msg)
+                else:
+                    # Full deduction
+                    messages.success(
+                        request,
+                        _(f"Successfully deducted {result['credits_deducted']:.3f} credits from {leave_type.name}. "
+                          f"New balance: {result['balance_after']:.3f}")
+                    )
                 return redirect("undertime-deduction-list")
             else:
                 messages.error(request, _(result.get("error", "Deduction failed")))
@@ -5694,13 +5706,18 @@ def get_employee_attendance_with_undertime(request):
         shift_name = shift.employee_shift if shift else "Default"
         
         # Build a map of day name -> minimum working minutes for this employee's shift
+        # Also track shift end times for determining absent status
         day_to_min_hour = {}
+        day_to_shift_end = {}  # Map day name -> shift end time
         if shift:
             schedules = EmployeeShiftSchedule.objects.filter(shift_id=shift)
             for schedule in schedules:
                 day_name = schedule.day.day.lower()
                 min_seconds = strtime_seconds(schedule.minimum_working_hour)
                 day_to_min_hour[day_name] = min_seconds / 60  # Convert to minutes
+                # Store shift end time for this day
+                if hasattr(schedule, 'end_time') and schedule.end_time:
+                    day_to_shift_end[day_name] = schedule.end_time
         
         # Default to 480 minutes (8 hours) if no shift schedule found
         default_min_minutes = 480.0
@@ -5749,7 +5766,19 @@ def get_employee_attendance_with_undertime(request):
             
             # Determine type label based on work_record_type
             if wr.work_record_type == "DFT":
-                type_label = "No Clock-in"
+                # Check if shift has ended - if so, show as Absent instead of No Clock-in
+                from datetime import datetime
+                current_time = datetime.now().time()
+                shift_end_time = day_to_shift_end.get(day_name)
+                
+                # If the record is from a past day, it's definitely Absent
+                if wr.date < today:
+                    type_label = "Absent"
+                # If it's today and shift end time exists and current time is past it
+                elif shift_end_time and current_time > shift_end_time:
+                    type_label = "Absent"
+                else:
+                    type_label = "No Clock-in"
             elif wr.work_record_type == "CONF":
                 type_label = "Conflict"
             else:
