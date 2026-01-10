@@ -5800,6 +5800,9 @@ def get_employee_attendance_with_undertime(request):
             })
         
         # 2. Get half-day absences from WorkRecords
+        # For half-day records, also calculate late minutes based on clock-in vs shift start
+        from leave.services.leave_credit_deduction import get_attendance_late_minutes
+        
         halfday_records = WorkRecords.objects.filter(
             employee_id=employee,
             date__gte=month_start,
@@ -5808,33 +5811,37 @@ def get_employee_attendance_with_undertime(request):
         ).order_by("-date")
         
         for wr in halfday_records:
-            # Check if there's undertime in this half-day
-            if wr.at_work_second and wr.min_hour_second:
-                if wr.at_work_second < wr.min_hour_second:
-                    undertime_seconds = wr.min_hour_second - wr.at_work_second
-                    undertime_minutes = undertime_seconds / 60
+            # Get the associated attendance to calculate late minutes
+            if wr.attendance_id:
+                # Use late minutes calculation (clock-in vs shift start)
+                late_minutes = get_attendance_late_minutes(wr.attendance_id)
+                
+                if late_minutes >= 1:
                     is_processed = wr.date in processed_dates
                     
-                    hours = int(undertime_minutes // 60)
-                    mins = int(undertime_minutes % 60)
-                    undertime_str = f"{hours}h {mins}m" if hours else f"{mins} min"
+                    hours = int(late_minutes // 60)
+                    mins = int(late_minutes % 60)
+                    late_str = f"{hours}h {mins}m" if hours else f"{mins} min"
                     
                     records.append({
-                        "attendance_id": wr.attendance_id.id if wr.attendance_id else None,
+                        "attendance_id": wr.attendance_id.id,
                         "work_record_id": wr.id,
                         "date": wr.date.strftime("%Y-%m-%d"),
                         "date_display": wr.date.strftime("%b %d, %Y"),
                         "type": "Half Day",
-                        "undertime_minutes": round(undertime_minutes, 1),
-                        "undertime_display": undertime_str,
-                        "credits": calculate_credits(undertime_minutes),
-                        "clock_in": str(wr.attendance_id.attendance_clock_in) if wr.attendance_id and wr.attendance_id.attendance_clock_in else "-",
-                        "clock_out": str(wr.attendance_id.attendance_clock_out) if wr.attendance_id and wr.attendance_id.attendance_clock_out else "-",
+                        "undertime_minutes": round(late_minutes, 1),
+                        "undertime_display": late_str,
+                        "credits": calculate_credits(late_minutes),
+                        "clock_in": str(wr.attendance_id.attendance_clock_in) if wr.attendance_id.attendance_clock_in else "-",
+                        "clock_out": str(wr.attendance_id.attendance_clock_out) if wr.attendance_id.attendance_clock_out else "-",
                         "already_processed": is_processed,
                         "shift": shift_name,
                     })
         
-        # 3. Get attendance records with undertime (lates)
+        # 3. Get attendance records with late arrivals
+        # Import the new late minutes function
+        from leave.services.leave_credit_deduction import get_attendance_late_minutes
+        
         attendances = Attendance.objects.filter(
             employee_id=employee,
             attendance_date__gte=month_start,
@@ -5849,38 +5856,35 @@ def get_employee_attendance_with_undertime(request):
             # Skip if already added from WorkRecords
             if att.attendance_date.strftime("%Y-%m-%d") in added_dates:
                 continue
-                
-            # Calculate undertime
-            min_seconds = strtime_seconds(att.minimum_hour)
-            worked_seconds = att.at_work_second or 0
             
-            if worked_seconds < min_seconds:
-                undertime_seconds = min_seconds - worked_seconds
-                undertime_minutes = undertime_seconds / 60
+            # Calculate LATE MINUTES (clock-in vs shift start)
+            # This replaces the old undertime calculation which only
+            # considered total worked hours vs minimum required
+            late_minutes = get_attendance_late_minutes(att)
+            
+            # Only show if there's meaningful late time (at least 1 minute)
+            if late_minutes >= 1:
+                # Format late time for display
+                hours = int(late_minutes // 60)
+                mins = int(late_minutes % 60)
+                late_str = f"{hours}h {mins}m" if hours else f"{mins} min"
                 
-                # Only show if there's meaningful undertime (at least 1 minute)
-                if undertime_minutes >= 1:
-                    # Format undertime for display
-                    hours = int(undertime_minutes // 60)
-                    mins = int(undertime_minutes % 60)
-                    undertime_str = f"{hours}h {mins}m" if hours else f"{mins} min"
-                    
-                    is_processed = att.id in processed_att_ids or att.attendance_date in processed_dates
-                    
-                    records.append({
-                        "attendance_id": att.id,
-                        "work_record_id": None,
-                        "date": att.attendance_date.strftime("%Y-%m-%d"),
-                        "date_display": att.attendance_date.strftime("%b %d, %Y"),
-                        "type": "Late/Undertime",
-                        "undertime_minutes": round(undertime_minutes, 1),
-                        "undertime_display": undertime_str,
-                        "credits": calculate_credits(undertime_minutes),
-                        "clock_in": str(att.attendance_clock_in) if att.attendance_clock_in else "-",
-                        "clock_out": str(att.attendance_clock_out) if att.attendance_clock_out else "-",
-                        "already_processed": is_processed,
-                        "shift": shift_name,
-                    })
+                is_processed = att.id in processed_att_ids or att.attendance_date in processed_dates
+                
+                records.append({
+                    "attendance_id": att.id,
+                    "work_record_id": None,
+                    "date": att.attendance_date.strftime("%Y-%m-%d"),
+                    "date_display": att.attendance_date.strftime("%b %d, %Y"),
+                    "type": "Late",
+                    "undertime_minutes": round(late_minutes, 1),
+                    "undertime_display": late_str,
+                    "credits": calculate_credits(late_minutes),
+                    "clock_in": str(att.attendance_clock_in) if att.attendance_clock_in else "-",
+                    "clock_out": str(att.attendance_clock_out) if att.attendance_clock_out else "-",
+                    "already_processed": is_processed,
+                    "shift": shift_name,
+                })
         
         # Sort by date descending
         records.sort(key=lambda x: x["date"], reverse=True)

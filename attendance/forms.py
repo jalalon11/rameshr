@@ -686,7 +686,7 @@ class NewRequestForm(AttendanceRequestForm):
                 widget=forms.Select(
                     attrs={
                         "class": "oh-select oh-select-2 w-100",
-                        "hx-target": "#id_shift_id_div",
+                        "hx-target": "#shift_worktype_wrapper",
                         "hx-get": "/attendance/get-employee-shift?bulk=False",
                     }
                 ),
@@ -1043,7 +1043,7 @@ class BulkAttendanceRequestForm(BaseModelForm):
         queryset=Employee.objects.filter(is_active=True),
         widget=forms.Select(
             attrs={
-                "hx-target": "#id_shift_id_div",
+                "hx-target": "#shift_worktype_wrapper",
                 "hx-get": "/attendance/get-employee-shift?bulk=True",
             }
         ),

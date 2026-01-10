@@ -108,5 +108,12 @@
             {% trans "Edit" %}
         </a>
         {% endif %}
+        {% if request.user|is_reportingmanager or perms.horilla_documents.add_documentrequest %}
+        <a href="{% url 'document-request-view' %}?employee_id={{ attendance.employee_id.id }}&open_create_modal=true"
+            target="_blank" class="oh-btn oh-btn--warning w-100">
+            <ion-icon name="document-outline"></ion-icon>
+            {% trans "Documents" %}
+        </a>
+        {% endif %}
     </div>
 </div>

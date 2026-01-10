@@ -39,5 +39,24 @@
 	{% include 'documents/requests.html' %}
 </div>
 
+{% if open_create_modal %}
+<script>
+	$(document).ready(function () {
+		// Auto-trigger the create document request modal with employee pre-selection
+		setTimeout(function () {
+			var employeeId = "{{ preselect_employee_id }}";
+			var createUrl = "{% url 'document-request-create' %}";
+			if (employeeId) {
+				createUrl += "?employee_id=" + employeeId;
+			}
+			// Trigger HTMX request to load the form
+			htmx.ajax('GET', createUrl, { target: '#objectCreateModalTarget' }).then(function () {
+				// Open the modal
+				$('#objectCreateModal').addClass('oh-modal--show');
+			});
+		}, 500);
+	});
+</script>
+{% endif %}
 
 {% endblock content %}

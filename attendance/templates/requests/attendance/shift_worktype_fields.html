@@ -1,0 +1,13 @@
+{% load i18n widget_tweaks %}
+<div class="col-12 col-md-6" id="id_shift_id_div">
+    <div class="oh-label__info" for="id_shift_id">
+        <label class="oh-label required-star" for="id_shift_id">{% trans "Shift" %}</label>
+    </div>
+    {{ shift_field|add_class:"oh-select oh-select-2 w-100" }}
+</div>
+<div class="col-12 col-md-6" id="id_work_type_id_div">
+    <div class="oh-label__info" for="id_work_type_id">
+        <label class="oh-label" for="id_work_type_id">{% trans "Work Type" %}</label>
+    </div>
+    {{ work_type_field|add_class:"oh-select oh-select-2 w-100" }}
+</div>

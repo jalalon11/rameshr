@@ -487,12 +487,19 @@ def document_request_view(request):
     )
     data_dict = parse_qs(previous_data)
     get_key_instances(Document, data_dict)
+    
+    # Handle auto-open create modal with employee pre-selection
+    open_create_modal = request.GET.get("open_create_modal", "").lower() == "true"
+    preselect_employee_id = request.GET.get("employee_id", "")
+    
     context = {
         "document_requests": document_requests,
         "documents": documents,
         "f": filter_class,
         "pd": previous_data,
         "filter_dict": data_dict,
+        "open_create_modal": open_create_modal,
+        "preselect_employee_id": preselect_employee_id,
     }
     return render(request, "documents/document_requests.html", context=context)
 
@@ -544,6 +551,16 @@ def document_request_create(request):
     """
     form = DocumentRequestForm()
     form = choosesubordinates(request, form, "horilla_documents.add_documentrequest")
+    
+    # Handle employee pre-selection from query parameter
+    preselect_employee_id = request.GET.get("employee_id", "")
+    if preselect_employee_id:
+        try:
+            employee = Employee.objects.get(id=preselect_employee_id)
+            form.fields["employee_id"].initial = [employee]
+        except Employee.DoesNotExist:
+            pass
+    
     if request.method == "POST":
         form = DocumentRequestForm(request.POST)
         form = choosesubordinates(

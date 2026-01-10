@@ -34,11 +34,11 @@ SUBMENUS = [
         "menu": trans("Payslips"),
         "redirect": reverse("view-payslip"),
     },
-    {
-        "menu": trans("Loan / Advanced Salary"),
-        "redirect": reverse("view-loan"),
-        "accessibility": "payroll.sidebar.loan_accessibility",
-    },
+    # {
+    #     "menu": trans("Loan / Advanced Salary"),
+    #     "redirect": reverse("view-loan"),
+    #     "accessibility": "payroll.sidebar.loan_accessibility",
+    # },
     {
         "menu": trans("Encashments & Reimbursements"),
         "redirect": reverse("view-reimbursement"),

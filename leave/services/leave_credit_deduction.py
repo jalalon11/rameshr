@@ -69,6 +69,69 @@ def get_attendance_undertime(attendance) -> float:
     return undertime_seconds / 60
 
 
+def get_attendance_late_minutes(attendance) -> float:
+    """
+    Calculate late arrival minutes from an attendance record.
+    
+    Late = Clock-in time - Shift start time
+    
+    This calculates the ACTUAL late arrival time, which is different from
+    undertime (which only considers total worked hours vs minimum required).
+    
+    Example:
+        - Shift starts at 8:00 AM
+        - Employee clocks in at 8:04 AM
+        - Late minutes = 4 (even if they work 8 full hours)
+    
+    Args:
+        attendance: Attendance model instance
+    
+    Returns:
+        Late minutes (0 if on time or early)
+    """
+    from datetime import datetime
+    from base.models import EmployeeShiftSchedule
+    
+    # Need both clock-in time and date
+    if not attendance.attendance_clock_in or not attendance.attendance_clock_in_date:
+        return 0.0
+    
+    # Get the shift for this attendance
+    shift = attendance.shift_id
+    if not shift:
+        return 0.0
+    
+    # Get the day of week for the attendance date
+    day_name = attendance.attendance_date.strftime("%A").lower()
+    
+    # Find the shift schedule for this day
+    try:
+        schedule = EmployeeShiftSchedule.objects.filter(
+            shift_id=shift,
+            day__day=day_name
+        ).first()
+        
+        if not schedule or not schedule.start_time:
+            return 0.0
+        
+        shift_start = schedule.start_time
+        clock_in = attendance.attendance_clock_in
+        
+        # Combine with date for proper comparison
+        clock_in_dt = datetime.combine(attendance.attendance_clock_in_date, clock_in)
+        shift_start_dt = datetime.combine(attendance.attendance_clock_in_date, shift_start)
+        
+        # Calculate late minutes
+        if clock_in_dt > shift_start_dt:
+            late_seconds = (clock_in_dt - shift_start_dt).total_seconds()
+            return late_seconds / 60
+        
+        return 0.0
+        
+    except Exception:
+        return 0.0
+
+
 def process_deduction(
     employee,
     leave_type,

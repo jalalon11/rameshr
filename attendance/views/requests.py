@@ -45,7 +45,7 @@ from base.methods import (
     get_key_instances,
     is_reportingmanager,
 )
-from base.models import EmployeeShift, EmployeeShiftDay
+from base.models import EmployeeShift, EmployeeShiftDay, WorkType
 from employee.models import Employee
 from horilla.decorators import (
     hx_request_required,
@@ -184,11 +184,26 @@ def request_new(request):
     )
 
     form.fields["employee_id"].queryset = employees_qs.distinct()
-    form.fields["employee_id"].initial = request.user.employee_get.id
+    
+    # Get current employee for pre-selection
+    current_employee = request.user.employee_get
+    form.fields["employee_id"].initial = current_employee.id
+    
+    # Pre-select shift and work type based on current employee
+    if current_employee:
+        form.fields["shift_id"].initial = current_employee.get_shift
+        form.fields["work_type_id"].initial = current_employee.get_work_type
+    
     if request.GET.get("emp_id"):
         emp_id = request.GET.get("emp_id")
         form.fields["employee_id"].queryset = Employee.objects.filter(id=emp_id)
         form.fields["employee_id"].initial = emp_id
+        # Also update shift and work type for the specified employee
+        emp = Employee.objects.filter(id=emp_id).first()
+        if emp:
+            form.fields["shift_id"].initial = emp.get_shift
+            form.fields["work_type_id"].initial = emp.get_work_type
+            
     if request.method == "POST":
         form = NewRequestForm(request.POST)
         employees_qs = Employee.objects.filter(
@@ -881,24 +896,31 @@ def edit_validate_attendance(request, attendance_id):
 @hx_request_required
 def get_employee_shift(request):
     """
-    method used to get employee shift
+    method used to get employee shift and work type
     """
     employee_id = request.GET.get("employee_id")
     shift = None
+    work_type = None
     if employee_id:
         employee = Employee.objects.get(id=employee_id)
         shift = employee.get_shift
+        work_type = employee.get_work_type
     form = NewRequestForm()
     if request.GET.get("bulk") and eval_validate(request.GET.get("bulk")):
         form = BulkAttendanceRequestForm()
+    # Set shift field
     form.fields["shift_id"].queryset = EmployeeShift.objects.all()
     form.fields["shift_id"].widget.attrs["hx-trigger"] = "load,change"
     form.fields["shift_id"].initial = shift
-    shift_id = render_to_string(
-        "requests/attendance/form_field.html",
+    # Set work type field
+    form.fields["work_type_id"].queryset = WorkType.objects.all()
+    form.fields["work_type_id"].initial = work_type
+    # Render both fields using template
+    html = render_to_string(
+        "requests/attendance/shift_worktype_fields.html",
         {
-            "field": form["shift_id"],
-            "shift": shift,
+            "shift_field": form["shift_id"],
+            "work_type_field": form["work_type_id"],
         },
     )
-    return HttpResponse(f"{shift_id}")
+    return HttpResponse(html)
