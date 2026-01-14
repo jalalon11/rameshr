@@ -283,13 +283,13 @@ function initializeSummernote(candId,searchWords,) {
             </li>
             {% endif %}
             {% if perms.base.view_companyleaves %}
-            <li class="oh-sidebar__submenu-item">
+            <!-- <li class="oh-sidebar__submenu-item">
               <a
               href="{% url 'company-leave-view' %}"
               class="oh-sidebar__submenu-link"
               >{% trans "Company Leaves" %}</a
               >
-            </li>
+            </li> -->
             {% endif %}
             {% if "leave"|app_installed %}
             <!-- <li class="oh-sidebar__submenu-item">

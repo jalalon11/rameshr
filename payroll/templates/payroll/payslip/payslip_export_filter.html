@@ -9,20 +9,11 @@
 		<button class="oh-modal__close" aria-label="Close">
 			<ion-icon name="close-outline"></ion-icon>
 		</button>
-		<div
-			class="oh-modal__dialog-body p-0 pt-2"
-			id="payslipReportModalBody"
-		>
-			<form
-				{% if report %}
-					action="{%url 'payslip-detailed-export' %}"
-				{% else %}
-					action="{%url 'payslip-info-export' %}"
-				{% endif %}
-				method="get"
+		<div class="oh-modal__dialog-body p-0 pt-2" id="payslipReportModalBody">
+			<form {% if report %} action="{%url 'payslip-detailed-export' %}" {% else %}
+				action="{%url 'payslip-info-export' %}" {% endif %} method="get"
 				onsubmit="event.stopPropagation();$(this).parents().find('.oh-modal--show').last().toggleClass('oh-modal--show');"
-				id="payslipReportForm"
-			>
+				id="payslipReportForm">
 				{% csrf_token %}
 				<div id="reportForm">
 					<div class="oh-dropdown__filter-body">
@@ -33,18 +24,10 @@
 							</div>
 							<div class="oh-accordion-body">
 								<div class="row">
-									<div
-										class="col-sm-12 col-md-12 col-lg-6"
-									>
+									<div class="col-sm-12 col-md-12 col-lg-6">
 										<div class="oh-input-group">
-											<label
-												class="oh-label"
-												for="select-all-fields"
-											>
-												<input
-													type="checkbox"
-													id="select-all-fields"
-												/>
+											<label class="oh-label" for="select-all-fields">
+												<input type="checkbox" id="select-all-fields" />
 												{% trans "Select All" %}
 											</label>
 										</div>
@@ -52,9 +35,7 @@
 								</div>
 								<div class="row">
 									{% for field in export_column.selected_fields %}
-									<div
-										class="col-sm-12 col-md-12 col-lg-4"
-									>
+									<div class="col-sm-12 col-md-12 col-lg-4">
 										<div class="oh-input-group">
 											<label class="oh-label">
 												{{ field }}
@@ -74,10 +55,8 @@
 								<div class="row">
 									<div class="col-sm-12">
 										<div class="oh-input-group">
-											<label
-												class="oh-label"
-												for="{{export_filter.form.employee_id.id_for_label}}"
-												>{% trans "Employee" %}
+											<label class="oh-label"
+												for="{{export_filter.form.employee_id.id_for_label}}">{% trans "Employee" %}
 											</label>
 											{{ export_filter.form.employee_id }}
 										</div>
@@ -86,43 +65,30 @@
 								<div class="row">
 									<div class="col-sm-6">
 										<div class="oh-input-group">
-											<label
-												class="oh-label"
-												for="{{export_filter.form.start_date.id_for_label}}"
-												>{% trans "Start Date" %}</label
-											>
-											{{ export_filter.form.start_date }}
+											<label class="oh-label"
+												for="{{export_filter.form.start_date_from.id_for_label}}">{% trans "Start Date From" %}</label>
+											{{ export_filter.form.start_date_from }}
 										</div>
 									</div>
 									<div class="col-sm-6">
 										<div class="oh-input-group">
-											<label
-												class="oh-label"
-												for="{{export_filter.form.end_date.id_for_label}}"
-												>{% trans "End Date" %}</label
-											>
-											{{ export_filter.form.end_date }}
+											<label class="oh-label"
+												for="{{export_filter.form.end_date_till.id_for_label}}">{% trans "End Date Till" %}</label>
+											{{ export_filter.form.end_date_till }}
 										</div>
 									</div>
 								</div>
 								<div class="row">
 									<div class="col-sm-6">
 										<div class="oh-input-group">
-											<label
-												class="oh-label"
-												for="{{export_filter.form.status.id_for_label}}"
-												>{% trans "Status" %}</label
-											>
+											<label class="oh-label" for="{{export_filter.form.status.id_for_label}}">{% trans "Status" %}</label>
 											{{ export_filter.form.status }}
 										</div>
 									</div>
 									<div class="col-sm-6">
 										<div class="oh-input-group">
-											<label
-												class="oh-label"
-												for="{{export_filter.form.group_name.id_for_label}}"
-												>{% trans "Batch" %}</label
-											>
+											<label class="oh-label"
+												for="{{export_filter.form.group_name.id_for_label}}">{% trans "Batch" %}</label>
 											{{ export_filter.form.group_name }}
 										</div>
 									</div>
@@ -137,65 +103,15 @@
 								<div class="row">
 									<div class="col-sm-6">
 										<div class="oh-input-group">
-											<label
-												class="oh-label"
-												for="{{export_filter.form.start_date_from.id_for_label}}"
-												>{% trans "Start Date From" %}
-											</label>
-											{{ export_filter.form.start_date_from }}
-										</div>
-									</div>
-									<div class="col-sm-6">
-										<div class="oh-input-group">
-											<label
-												class="oh-label"
-												for="{{export_filter.form.start_date_till.id_for_label}}"
-												>{% trans "Start Date Till" %}</label
-											>
-											{{ export_filter.form.start_date_till }}
-										</div>
-									</div>
-								</div>
-								<div class="row">
-									<div class="col-sm-6">
-										<div class="oh-input-group">
-											<label
-												class="oh-label"
-												for="{{export_filter.form.end_date_from.id_for_label}}"
-												>{% trans "End Date From" %}</label
-											>
-											{{ export_filter.form.end_date_from }}
-										</div>
-									</div>
-									<div class="col-sm-6">
-										<div class="oh-input-group">
-											<label
-												class="oh-label"
-												for="{{export_filter.form.end_date_till.id_for_label}}"
-												>{% trans "End Date Till" %}</label
-											>
-											{{ export_filter.form.end_date_till }}
-										</div>
-									</div>
-								</div>
-								<div class="row">
-									<div class="col-sm-6">
-										<div class="oh-input-group">
-											<label
-												class="oh-label"
-												for="{{export_filter.form.gross_pay__lte.id_for_label}}"
-												>{% trans "Gross Pay Less Than or Equal" %}</label
-											>
+											<label class="oh-label"
+												for="{{export_filter.form.gross_pay__lte.id_for_label}}">{% trans "Gross Pay Less Than or Equal" %}</label>
 											{{ export_filter.form.gross_pay__lte }}
 										</div>
 									</div>
 									<div class="col-sm-6">
 										<div class="oh-input-group">
-											<label
-												class="oh-label"
-												for="{{export_filter.form.gross_pay__gte.id_for_label}}"
-												>{% trans "Gross Pay Greater or Equal" %}</label
-											>
+											<label class="oh-label"
+												for="{{export_filter.form.gross_pay__gte.id_for_label}}">{% trans "Gross Pay Greater or Equal" %}</label>
 											{{ export_filter.form.gross_pay__gte }}
 										</div>
 									</div>
@@ -203,21 +119,15 @@
 								<div class="row">
 									<div class="col-sm-6">
 										<div class="oh-input-group">
-											<label
-												class="oh-label"
-												for="{{export_filter.form.deduction__lte.id_for_label}}"
-												>{% trans "Deduction Less Than or Equal" %}</label
-											>
+											<label class="oh-label"
+												for="{{export_filter.form.deduction__lte.id_for_label}}">{% trans "Deduction Less Than or Equal" %}</label>
 											{{ export_filter.form.deduction__lte }}
 										</div>
 									</div>
 									<div class="col-sm-6">
 										<div class="oh-input-group">
-											<label
-												class="oh-label"
-												for="{{export_filter.form.deduction__gte.id_for_label}}"
-												>{% trans "Deduction Greater or Equal" %}</label
-											>
+											<label class="oh-label"
+												for="{{export_filter.form.deduction__gte.id_for_label}}">{% trans "Deduction Greater or Equal" %}</label>
 											{{ export_filter.form.deduction__gte }}
 										</div>
 									</div>
@@ -225,21 +135,15 @@
 								<div class="row">
 									<div class="col-sm-6">
 										<div class="oh-input-group">
-											<label
-												class="oh-label"
-												for="{{export_filter.form.net_pay__lte.id_for_label}}"
-												>{% trans "Net Pay Less Than or Equal" %}</label
-											>
+											<label class="oh-label"
+												for="{{export_filter.form.net_pay__lte.id_for_label}}">{% trans "Net Pay Less Than or Equal" %}</label>
 											{{ export_filter.form.net_pay__lte }}
 										</div>
 									</div>
 									<div class="col-sm-6">
 										<div class="oh-input-group">
-											<label
-												class="oh-label"
-												for="{{export_filter.form.net_pay__gte.id_for_label}}"
-												>{% trans "Net Pay Greater or Equal" %}</label
-											>
+											<label class="oh-label"
+												for="{{export_filter.form.net_pay__gte.id_for_label}}">{% trans "Net Pay Greater or Equal" %}</label>
 											{{ export_filter.form.net_pay__gte }}
 										</div>
 									</div>
@@ -249,13 +153,11 @@
 					</div>
 				</div>
 				<div class="oh-dropdown__filter-footer mb-4">
-					<button
-						class="oh-btn oh-btn--secondary oh-btn--small w-100"
-					>
+					<button class="oh-btn oh-btn--secondary oh-btn--small w-100">
 						{% if report %}
-							{% trans "Download report" %}
+						{% trans "Download report" %}
 						{% else %}
-							{% trans "Export" %}
+						{% trans "Export" %}
 						{% endif %}
 					</button>
 				</div>

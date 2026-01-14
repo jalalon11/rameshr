@@ -2120,14 +2120,14 @@ def payslip_detailed_export_data(request):
 @permission_required("payroll.change_payslip")
 def payslip_detailed_export(request):
     """
-    Generate an Excel file for download containing detailed payslip data based on
-    filters.
+    Generate a printable HTML report for payslip data based on filters.
+    The report can be printed/saved as PDF using the browser's print function.
 
     Args:
         request (HttpRequest): The incoming HTTP request object.
 
     Returns:
-        HttpResponse: A response object with the Excel file as an attachment.
+        HttpResponse: A response object with the printable HTML page.
     """
 
     if request.META.get("HTTP_HX_REQUEST"):
@@ -2146,106 +2146,78 @@ def payslip_detailed_export(request):
     selected_columns = export_data["selected_columns"]
     allowances = export_data["allowances"]
     deductions = export_data["deductions"]
-    today_date = date.today().strftime("%Y-%m-%d")
-    file_name = f"Payslip_excel_{today_date}.xlsx"
-
-    thin_border = Border(
-        left=Side(style="thin"),
-        right=Side(style="thin"),
-        top=Side(style="thin"),
-        bottom=Side(style="thin"),
-    )
-    right_border = Border(right=Side(style="thin"))
-
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Payslips"
-
-    header_row = [col_name for _, col_name in selected_columns]
+    
+    # Get the company for header
+    company = Company.objects.filter(hq=True).first()
+    if not company:
+        company = Company.objects.first()
+    
+    # Get date range from request or payslips
+    start_date = request.GET.get("start_date_from")
+    end_date = request.GET.get("end_date_till")
+    
+    # If dates not provided, try to get from filtered payslips
+    if not start_date or not end_date:
+        payslips = PayslipFilter(request.GET).qs
+        if payslips.exists():
+            if not start_date:
+                first_payslip = payslips.order_by("start_date").first()
+                start_date = first_payslip.start_date if first_payslip else date.today()
+            if not end_date:
+                last_payslip = payslips.order_by("-end_date").first()
+                end_date = last_payslip.end_date if last_payslip else date.today()
+    
+    # Parse dates if strings
+    if isinstance(start_date, str) and start_date:
+        try:
+            start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+        except ValueError:
+            start_date = date.today()
+    if isinstance(end_date, str) and end_date:
+        try:
+            end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+        except ValueError:
+            end_date = date.today()
+    
+    # Prepare column headers
     allowances_header = allowances + ["Other Allowances", "Total Allowances"]
-    deductions_header = deductions + [
-        "Other Deductions",
-        "Total Deductions",
-    ]
-
-    basic_cols = len(header_row) - len(allowances_header) - len(deductions_header)
-    allowance_cols = len(allowances_header)
-    deduction_cols = len(deductions_header)
-
-    merged_sections = [
-        (1, basic_cols, "Employee Details", "0000FF"),
-        (basic_cols + 1, basic_cols + allowance_cols, "Allowances", "008000"),
-        (
-            basic_cols + allowance_cols + 1,
-            basic_cols + allowance_cols + deduction_cols,
-            "Deductions",
-            "FF0000",
-        ),
-    ]
-
-    bold_cols = [
-        1,
-        basic_cols + allowance_cols,
-        basic_cols + allowance_cols + deduction_cols,
-    ]
-
-    for start_col, end_col, title, color in merged_sections:
-        ws.merge_cells(
-            start_row=1, start_column=start_col, end_row=1, end_column=end_col
-        )
-        cell = ws.cell(row=1, column=start_col, value=title)
-        cell.font = Font(color=color, bold=True)
-        cell.alignment = Alignment(horizontal="center")
-        cell.border = thin_border
-
-        if end_col <= len(header_row):
-            ws.cell(row=1, column=end_col).border = thin_border + right_border
-    last_row = len(payslips_data) + 2
-    ws.row_dimensions[1].height = 25
-    ws.row_dimensions[2].height = 20
-    ws.row_dimensions[last_row].height = 25
-
-    subheaders = [
-        (header_row[:basic_cols], Font(bold=True, color="0000FF")),
-        (allowances_header, Font(bold=True, color="008000")),
-        (deductions_header, Font(bold=True, color="FF0000")),
-    ]
-
-    col_num = 1
-    for subheader, font in subheaders:
-        for header in subheader:
-            cell = ws.cell(row=2, column=col_num, value=str(header))
-            cell.font = font
-            cell.alignment = Alignment(horizontal="center")
-            cell.border = thin_border
-            col_num += 1
-
-    for row_num, payslip_data in enumerate(payslips_data, 3):
-        for col_num, header in enumerate(header_row, 1):
-            cell = ws.cell(
-                row=row_num, column=col_num, value=payslip_data.get(header, "")
-            )
-            if row_num == last_row:
-                cell.font = Font(bold=True, color="800080")
-                cell.alignment = Alignment(horizontal="right")
-            elif col_num in bold_cols:
-                cell.font = Font(bold=True)
-            cell.border = thin_border
-
-    for col_num, _ in enumerate(header_row, 1):
-        max_length = max(
-            len(str(cell.value))
-            for cell in ws[get_column_letter(col_num)]
-            if cell.value is not None
-        )
-        ws.column_dimensions[get_column_letter(col_num)].width = max_length + 2
-
-    ws.freeze_panes = ws["B3"]
-
-    response = HttpResponse(
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    deductions_header = deductions + ["Other Deductions", "Total Deductions"]
+    
+    # Calculate column counts for section headers
+    header_row = [col_name for _, col_name in selected_columns]
+    basic_col_count = len(header_row) - len(allowances_header) - len(deductions_header)
+    allowance_col_count = len(allowances_header)
+    deduction_col_count = len(deductions_header)
+    
+    # Separate basic columns from selected_columns
+    basic_columns = selected_columns[:basic_col_count]
+    
+    # Get totals row (last item in payslips_data)
+    totals = payslips_data.pop() if payslips_data else {}
+    
+    # Get host and protocol for logo URL
+    protocol = "https" if request.is_secure() else "http"
+    host = request.get_host()
+    
+    context = {
+        "payslips_data": payslips_data,
+        "totals": totals,
+        "basic_columns": basic_columns,
+        "allowance_headers": allowances_header,
+        "deduction_headers": deductions_header,
+        "basic_col_count": basic_col_count,
+        "allowance_col_count": allowance_col_count,
+        "deduction_col_count": deduction_col_count,
+        "company": company,
+        "start_date": start_date,
+        "end_date": end_date,
+        "protocol": protocol,
+        "host": host,
+    }
+    
+    return render(
+        request,
+        "payroll/payslip/payslip_report_print.html",
+        context,
     )
-    response["Content-Disposition"] = f"attachment; filename={file_name}.xlsx"
-    wb.save(response)
 
-    return response
