@@ -294,7 +294,7 @@
               </td>
               <td class="w-50">
                 <span class="oh-payslip-td-head">{% trans "Total Work Hours :" %}</span>
-                <span class="oh-payslip-td-value">{% widthratio paid_days 1 8 %} {% trans "hours" %}</span>
+                <span class="oh-payslip-td-value">{{ paid_days|days_to_hours_minutes:"8" }}</span>
               </td>
             </tr>
           </tbody>
@@ -309,7 +309,7 @@
           </thead>
           <tbody>
             <tr>
-              <td>
+              <td style="padding-left: 25px;">
                 {% trans "Basic Pay" %}</td>
               <td class="oh-allowance-amount">
                 {{basic_pay|floatformat:2|currency_symbol_position}}
@@ -317,7 +317,7 @@
             </tr>
             {% for allowance in all_allowances %}
             <tr>
-              <td class="">{{allowance.title}}</td>
+              <td class="" style="padding-left: 25px;">{{allowance.title}}</td>
               <td class="oh-allowance-amount">
                 {{allowance.amount|floatformat:2|currency_symbol_position}}
               </td>
@@ -352,7 +352,7 @@
             </tr> -->
             {% for deduction in basic_pay_deductions %}
             <tr>
-              <td class="">{{deduction.title}}</td>
+              <td class="" style="padding-left: 25px;">{{deduction.title}}</td>
               <td class="oh-allowance-amount">
                 {{deduction.amount|floatformat:2|currency_symbol_position}}
               </td>
@@ -360,7 +360,7 @@
             {% endfor %}
             {% for deduction in gross_pay_deductions %}
             <tr>
-              <td class="">{{deduction.title}}</td>
+              <td class="" style="padding-left: 25px;">{{deduction.title}}</td>
               <td class="oh-allowance-amount">
                 {{deduction.amount|floatformat:2|currency_symbol_position}}
               </td>
@@ -368,7 +368,7 @@
             {% endfor %}
             {% for deduction in pretax_deductions %}
             <tr>
-              <td class="">{{deduction.title}}</td>
+              <td class="" style="padding-left: 25px;">{{deduction.title}}</td>
               <td class="oh-allowance-amount">
                 {{deduction.amount|floatformat:2|currency_symbol_position}}
               </td>
@@ -376,7 +376,7 @@
             {% endfor %}
             {% for deduction in post_tax_deductions %}
             <tr>
-              <td class="">{{deduction.title}}</td>
+              <td class="" style="padding-left: 25px;">{{deduction.title}}</td>
               <td class="oh-allowance-amount">
                 {{deduction.amount|floatformat:2|currency_symbol_position}}
               </td>
@@ -384,7 +384,7 @@
             {% endfor %}
             {% for deduction in tax_deductions %}
             <tr>
-              <td class="">{{deduction.title}}</td>
+              <td class="" style="padding-left: 25px;">{{deduction.title}}</td>
               <td class="oh-allowance-amount">
                 {{deduction.amount|floatformat:2|currency_symbol_position}}
               </td>
@@ -392,7 +392,7 @@
             {% endfor %}
             {% for deduction in net_deductions %}
             <tr>
-              <td class="">{{deduction.title}}</td>
+              <td class="" style="padding-left: 25px;">{{deduction.title}}</td>
               <td class="oh-allowance-amount">
                 {{deduction.amount|floatformat:2|currency_symbol_position}}
               </td>

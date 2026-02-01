@@ -20,9 +20,100 @@ from base.methods import (
     get_pagination,
     get_working_days,
 )
-from base.models import CompanyLeaves, Holidays
+from base.models import CompanyLeaves, Holidays, EmployeeShiftSchedule
 from horilla.methods import get_horilla_model_class
 from payroll.models.models import Contract, Deduction, Payslip
+
+
+def get_employee_working_days(employee, start_date, end_date):
+    """
+    Get working days for a specific employee based on their shift schedule.
+    
+    This function calculates working days by:
+    1. Getting the employee's assigned shift schedule
+    2. Finding which days of the week the employee is scheduled to work
+    3. Counting only those scheduled days within the period
+    4. Excluding holidays that fall on scheduled work days
+    
+    Args:
+        employee: Employee model instance
+        start_date (date): The start date of the period
+        end_date (date): The end date of the period
+    
+    Returns:
+        dict: {
+            'total_working_days': int,
+            'working_days_on': list of dates,
+            'company_leave_dates': list of holiday dates
+        }
+    """
+    # Get holiday/company leave dates
+    holiday_dates = get_holiday_dates(start_date, end_date)
+    company_leave_dates = (
+        list(
+            set(
+                get_company_leave_dates(start_date.year)
+                + get_company_leave_dates(end_date.year)
+            )
+        )
+        + holiday_dates
+    )
+    company_leave_dates = [
+        d for d in list(set(company_leave_dates))
+        if start_date <= d <= end_date
+    ]
+    
+    # Try to get employee's shift schedule
+    scheduled_day_names = None
+    try:
+        # Get employee's shift from work info
+        if hasattr(employee, 'employee_work_info') and employee.employee_work_info:
+            shift = employee.employee_work_info.shift_id
+            if shift:
+                # Get the shift schedule entries (which days this shift works)
+                schedules = EmployeeShiftSchedule.objects.filter(shift_id=shift)
+                if schedules.exists():
+                    # Get day names (lowercase) that this shift works
+                    scheduled_day_names = [
+                        schedule.day.day.lower() for schedule in schedules
+                    ]
+    except Exception:
+        scheduled_day_names = None
+    
+    # Generate all dates in the range
+    date_range = get_date_range(start_date, end_date)
+    
+    # Filter to only scheduled work days if we have shift info
+    if scheduled_day_names:
+        # Map Python weekday() to day names
+        weekday_map = {
+            0: 'monday',
+            1: 'tuesday',
+            2: 'wednesday',
+            3: 'thursday',
+            4: 'friday',
+            5: 'saturday',
+            6: 'sunday'
+        }
+        
+        # Filter dates to only include scheduled work days
+        scheduled_dates = [
+            d for d in date_range
+            if weekday_map.get(d.weekday()) in scheduled_day_names
+        ]
+    else:
+        # Fallback: use all dates if no shift schedule found
+        scheduled_dates = date_range
+    
+    # Exclude holidays from scheduled work days
+    working_days = [d for d in scheduled_dates if d not in company_leave_dates]
+    total_working_days = len(working_days)
+    
+    return {
+        'total_working_days': total_working_days,
+        'working_days_on': working_days,
+        'company_leave_dates': company_leave_dates,
+    }
 
 
 def get_total_days(start_date, end_date):
@@ -177,12 +268,43 @@ def hourly_computation(employee, wage, start_date, end_date):
         }
     attendance_data = get_attendance(employee, start_date, end_date)
     attendances_on_period = attendance_data["attendances_on_period"]
+    
+    # Get total working days in the period based on employee's shift schedule
+    # This properly respects the employee's assigned work days (e.g., Mon-Fri)
+    working_days_data = get_employee_working_days(employee, start_date, end_date)
+    total_working_days = working_days_data["total_working_days"]
+    working_days_dates = working_days_data["working_days_on"]
+    company_leave_dates = working_days_data["company_leave_dates"]  # Holidays
+    
+    # Get leave dates to exclude from absence calculation
+    leave_data = get_leaves(employee, start_date, end_date)
+    leave_dates = leave_data.get("leave_dates", [])
+    
+    # Filter out attendance records that fall on holidays
+    # Attendance on holidays should not be counted for regular pay calculation
+    regular_attendances = [
+        att for att in attendances_on_period 
+        if att.attendance_date not in company_leave_dates
+    ]
+    
+    # Get attendance dates (only regular working days, not holidays)
+    attendance_dates = [attendance.attendance_date for attendance in regular_attendances]
+    
+    # Calculate absent days (working days without attendance and not on leave)
+    # Note: Holidays are already excluded from working_days_dates by get_working_days()
+    absent_dates = [
+        day for day in working_days_dates 
+        if day not in attendance_dates and day not in leave_dates
+    ]
+    absent_days = len(absent_dates)
 
-    # Calculate actual worked hours and undertime
+    # Calculate actual worked hours and undertime (only for regular working days)
     total_worked_seconds = 0
     total_undertime_seconds = 0
+    total_required_seconds = 0  # Track total required hours for calculating daily rate
+    attendance_count_for_avg = 0  # Count only attendances with valid min_hours
 
-    for attendance in attendances_on_period:
+    for attendance in regular_attendances:
         # Calculate worked hours (excluding overtime)
         worked_seconds = attendance.at_work_second - attendance.overtime_second
         total_worked_seconds += worked_seconds
@@ -190,16 +312,29 @@ def hourly_computation(employee, wage, start_date, end_date):
 
         # Get minimum required hours
         min_hour_str = attendance.minimum_hour
-        if min_hour_str and ':' in min_hour_str:
-            hours, minutes = map(int, min_hour_str.split(':'))
+        if min_hour_str and ':' in str(min_hour_str):
+            hours, minutes = map(int, str(min_hour_str).split(':'))
             min_hours = hours + minutes / 60
+            min_seconds = (hours * 3600) + (minutes * 60)
         else:
-            min_hours = 0
+            min_hours = 8  # Default to 8 hours if not specified
+            min_seconds = 8 * 3600
+        
+        # Only count attendance with actual required hours for average calculation
+        if min_hours > 0:
+            total_required_seconds += min_seconds
+            attendance_count_for_avg += 1
 
-        # Calculate undertime
-        if worked_hours < min_hours:
+        # Calculate undertime (only if there's a minimum requirement)
+        if min_hours > 0 and worked_hours < min_hours:
             undertime_seconds = (min_hours - worked_hours) * 3600
             total_undertime_seconds += undertime_seconds
+
+    # Calculate average daily required hours (for converting undertime to days)
+    if attendance_count_for_avg > 0:
+        avg_daily_seconds = total_required_seconds / attendance_count_for_avg
+    else:
+        avg_daily_seconds = 8 * 3600  # Default 8 hours
 
     # Check for leave credit deductions that cover undertime
     # If leave credits were used, add covered time to worked hours (treated as paid)
@@ -232,18 +367,68 @@ def hourly_computation(employee, wage, start_date, end_date):
             # If leave module has issues, continue without adjustment
             pass
 
-    # Calculate basic pay based on actual worked hours + covered leave time
+    # Calculate wage rates
     wage_in_second = wage / 3600
-    basic_pay = float(f"{(wage_in_second * total_worked_seconds):.2f}")
-
+    
+    # Calculate absent day deduction (full day wage for each absent day)
+    # Daily wage = hourly wage * average daily required hours
+    daily_wage = wage_in_second * avg_daily_seconds
+    absent_deduction = absent_days * daily_wage
+    
     # Calculate undertime deduction (now reduced by leave credit coverage)
     undertime_deduction = float(f"{(wage_in_second * total_undertime_seconds):.2f}")
+    
+    # Total loss of pay = absent days deduction + undertime deduction
+    total_loss_of_pay = absent_deduction + undertime_deduction
+    
+    # Calculate LOP days (absent days + undertime converted to days)
+    undertime_in_days = total_undertime_seconds / avg_daily_seconds if avg_daily_seconds > 0 else 0
+    lop_days = absent_days + undertime_in_days
+    
+    # Calculate basic pay: expected pay for all working days minus loss of pay
+    # Expected pay = total working days * daily wage
+    expected_pay = total_working_days * daily_wage
+    basic_pay = float(f"{(expected_pay - total_loss_of_pay):.2f}")
+    
+    # Paid days = working days - absent days - undertime equivalent days
+    paid_days = total_working_days - lop_days
+    
+    # Calculate weekend days in the period (based on employee's non-scheduled days)
+    date_range = get_date_range(start_date, end_date)
+    weekend_dates = [d for d in date_range if d not in working_days_dates and d not in company_leave_dates]
+    
+    # Get minimum working hours from first attendance or default to 8
+    min_work_hours = 8.0
+    if regular_attendances:
+        first_att = regular_attendances[0]
+        min_hour_str = first_att.minimum_hour
+        if min_hour_str and ':' in str(min_hour_str):
+            hours, minutes = map(int, str(min_hour_str).split(':'))
+            min_work_hours = hours + minutes / 60
+
+    # Calculate undertime in hours for display
+    undertime_hours = total_undertime_seconds / 3600
+    undertime_in_days = total_undertime_seconds / avg_daily_seconds if avg_daily_seconds > 0 else 0
 
     return {
         "basic_pay": basic_pay,
-        "loss_of_pay": undertime_deduction,
-        "paid_days": len(attendances_on_period),
-        "unpaid_days": 0,
+        "loss_of_pay": float(f"{total_loss_of_pay:.2f}"),
+        "paid_days": round(paid_days, 2),
+        "unpaid_days": round(lop_days, 2),
+        # Additional breakdown info
+        "total_working_days": total_working_days,
+        "hourly_rate": wage,
+        "min_work_hours": min_work_hours,
+        "daily_rate": round(wage * min_work_hours, 2),
+        "expected_full_pay": round(wage * min_work_hours * total_working_days, 2),
+        "holidays": sorted(company_leave_dates),
+        "weekends": sorted(weekend_dates),
+        "absent_days": absent_days,
+        # LOP breakdown details
+        "absent_deduction": round(absent_deduction, 2),
+        "undertime_hours": round(undertime_hours, 2),
+        "undertime_days": round(undertime_in_days, 2),
+        "undertime_deduction": round(undertime_deduction, 2),
     }
 
 

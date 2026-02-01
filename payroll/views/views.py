@@ -426,6 +426,135 @@ def settings(request):
     )
 
 
+def add_breakdown_fields_to_payslip_data(data, payslip):
+    """
+    Add calculated breakdown fields to payslip data for display.
+    This ensures backward compatibility with existing payslips that
+    don't have the new breakdown fields in pay_head_data.
+    """
+    from datetime import datetime
+    from payroll.methods.methods import get_employee_working_days
+    
+    # Get values from data or calculate defaults
+    contract_wage = data.get("contract_wage", payslip.contract_wage or 0)
+    paid_days = data.get("paid_days", 0)
+    unpaid_days = data.get("unpaid_days", 0)
+    
+    # Calculate missing fields if not present
+    if "hourly_rate" not in data:
+        data["hourly_rate"] = contract_wage
+    
+    if "min_work_hours" not in data:
+        data["min_work_hours"] = 8.0
+    
+    if "daily_rate" not in data:
+        data["daily_rate"] = round(data["hourly_rate"] * data["min_work_hours"], 2)
+    
+    if "total_working_days" not in data:
+        data["total_working_days"] = round(paid_days + unpaid_days, 0)
+    
+    if "expected_full_pay" not in data:
+        data["expected_full_pay"] = round(data["daily_rate"] * data["total_working_days"], 2)
+    
+    # Calculate holidays and weekends if not present
+    if "holidays" not in data or "weekends" not in data:
+        try:
+            # Get working days data for the payslip period
+            start_date = payslip.start_date
+            end_date = payslip.end_date
+            employee = payslip.employee_id
+            
+            working_days_data = get_employee_working_days(employee, start_date, end_date)
+            
+            if "holidays" not in data:
+                data["holidays"] = working_days_data.get("company_leave_dates", [])
+            
+            if "weekends" not in data:
+                # Calculate non-working days (dates not in working days and not holidays)
+                from base.methods import get_date_range
+                all_dates = get_date_range(start_date, end_date)
+                working_days = working_days_data.get("working_days_on", [])
+                holidays = working_days_data.get("company_leave_dates", [])
+                weekends = [d for d in all_dates if d not in working_days and d not in holidays]
+                data["weekends"] = sorted(weekends)
+        except Exception:
+            # If calculation fails, set empty lists
+            if "holidays" not in data:
+                data["holidays"] = []
+            if "weekends" not in data:
+                data["weekends"] = []
+    
+    # Calculate LOP breakdown if not present
+    if "absent_deduction" not in data or "undertime_deduction" not in data:
+        daily_rate = data.get("daily_rate", 0)
+        loss_of_pay = data.get("loss_of_pay", 0)
+        hourly_rate = data.get("hourly_rate", 0)
+        min_work_hours = data.get("min_work_hours", 8)
+        
+        # Calculate absent_days if not present
+        # unpaid_days = absent_days + undertime_days, so we need to calculate both
+        if "absent_days" not in data:
+            # Try to calculate actual absent days from attendance records
+            try:
+                from payroll.methods.methods import get_employee_working_days, get_leaves
+                from attendance.models import Attendance
+                
+                start_date = payslip.start_date
+                end_date = payslip.end_date
+                employee = payslip.employee_id
+                
+                working_days_data = get_employee_working_days(employee, start_date, end_date)
+                working_days_dates = working_days_data.get("working_days_on", [])
+                company_leave_dates = working_days_data.get("company_leave_dates", [])
+                
+                # Get attendance records
+                attendances = Attendance.objects.filter(
+                    employee_id=employee,
+                    attendance_date__range=(start_date, end_date),
+                    attendance_validated=True,
+                )
+                attendance_dates = [att.attendance_date for att in attendances if att.attendance_date not in company_leave_dates]
+                
+                # Get leave dates
+                leave_data = get_leaves(employee, start_date, end_date)
+                leave_dates = leave_data.get("leave_dates", [])
+                
+                # Absent days = working days without attendance and not on leave
+                absent_dates = [
+                    day for day in working_days_dates 
+                    if day not in attendance_dates and day not in leave_dates
+                ]
+                data["absent_days"] = len(absent_dates)
+            except Exception:
+                # If calculation fails, estimate from unpaid_days
+                data["absent_days"] = 0
+        
+        absent_days = data.get("absent_days", 0)
+        
+        # Estimate absent deduction
+        if "absent_deduction" not in data:
+            data["absent_deduction"] = round(absent_days * daily_rate, 2)
+        
+        # Estimate undertime deduction (LOP minus absent deduction)
+        if "undertime_deduction" not in data:
+            data["undertime_deduction"] = round(max(0, loss_of_pay - data["absent_deduction"]), 2)
+        
+        # Estimate undertime hours and days
+        if "undertime_hours" not in data:
+            if hourly_rate > 0:
+                data["undertime_hours"] = round(data["undertime_deduction"] / hourly_rate, 2)
+            else:
+                data["undertime_hours"] = 0
+        
+        if "undertime_days" not in data:
+            if min_work_hours > 0:
+                data["undertime_days"] = round(data["undertime_hours"] / min_work_hours, 2)
+            else:
+                data["undertime_days"] = 0
+    
+    return data
+
+
 @login_required
 @permission_required("payroll.change_payslip")
 def update_payslip_status(request, payslip_id):
@@ -452,6 +581,8 @@ def update_payslip_status(request, payslip_id):
     data["json_data"]["employee"] = payslip.employee_id.id
     data["json_data"]["payslip"] = payslip.id
     data["instance"] = payslip
+    # Add calculated breakdown fields for display
+    data = add_breakdown_fields_to_payslip_data(data, payslip)
     return render(request, "payroll/payslip/individual_payslip_summery.html", data)
 
 
@@ -616,6 +747,8 @@ def view_created_payslip(request, payslip_id, **kwargs):
         data["json_data"]["employee"] = payslip.employee_id.id
         data["json_data"]["payslip"] = payslip.id
         data["instance"] = payslip
+        # Add calculated breakdown fields for display
+        data = add_breakdown_fields_to_payslip_data(data, payslip)
         return render(request, "payroll/payslip/individual_payslip.html", data)
     return render(request, "404.html")
 

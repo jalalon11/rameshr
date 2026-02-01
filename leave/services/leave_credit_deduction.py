@@ -132,6 +132,92 @@ def get_attendance_late_minutes(attendance) -> float:
         return 0.0
 
 
+def is_half_day_arrival(attendance) -> bool:
+    """
+    Determine if an attendance record represents a "Half Day" arrival.
+
+    Half Day = Clock-in is after the shift midpoint (second half of shift).
+
+    For an 8AM-5PM shift (8 hours with 1 hour lunch at 12 PM):
+    - Shift working hours: 4 hours AM (8-12) + 4 hours PM (1-5)
+    - Midpoint: 12:00 PM (end of first half)
+    - Second half starts: 1:00 PM (after lunch)
+    - Clock-in at/after 1:00 PM = Half Day
+    - Clock-in before 1:00 PM = Late (but not Half Day)
+
+    Args:
+        attendance: Attendance model instance
+
+    Returns:
+        True if clock-in is after shift midpoint (Half Day), False otherwise
+    """
+    from datetime import datetime, timedelta
+
+    from base.models import EmployeeShiftSchedule
+
+    # Need clock-in time and date
+    if not attendance.attendance_clock_in or not attendance.attendance_clock_in_date:
+        return False
+
+    # Get the shift for this attendance
+    shift = attendance.shift_id
+    if not shift:
+        return False
+
+    # Get the day of week for the attendance date
+    day_name = attendance.attendance_date.strftime("%A").lower()
+
+    try:
+        schedule = EmployeeShiftSchedule.objects.filter(
+            shift_id=shift, day__day=day_name
+        ).first()
+
+        if not schedule or not schedule.start_time or not schedule.end_time:
+            return False
+
+        shift_start = schedule.start_time
+        shift_end = schedule.end_time
+        clock_in = attendance.attendance_clock_in
+
+        # Total shift span in minutes (e.g., 8AM-5PM = 9 hours = 540 min)
+        start_dt = datetime.combine(attendance.attendance_date, shift_start)
+        if schedule.is_night_shift or shift_end < shift_start:
+            end_dt = datetime.combine(
+                attendance.attendance_date + timedelta(days=1), shift_end
+            )
+        else:
+            end_dt = datetime.combine(attendance.attendance_date, shift_end)
+
+        total_shift_span_minutes = (end_dt - start_dt).total_seconds() / 60
+
+        # Standard lunch break duration (1 hour)
+        LUNCH_BREAK_MINUTES = 60
+
+        # Working hours = total shift span - lunch break
+        # For 8AM-5PM: 9 hours - 1 hour lunch = 8 working hours
+        working_minutes = total_shift_span_minutes - LUNCH_BREAK_MINUTES
+
+        # First half of working day (half of working hours, not total span)
+        # For 8 working hours: first half = 4 hours = 240 minutes
+        first_half_minutes = working_minutes / 2
+
+        # Second half starts after: first half + lunch break
+        # For 8AM start: 8AM + 4 hours (first half) + 1 hour (lunch) = 1PM
+        # This means: shift_start + first_half + lunch = second_half_start
+        second_half_start_dt = start_dt + timedelta(
+            minutes=first_half_minutes + LUNCH_BREAK_MINUTES
+        )
+
+        # Compare clock-in time with second half start
+        clock_in_dt = datetime.combine(attendance.attendance_clock_in_date, clock_in)
+
+        # If clock-in is at or after the second half start, it's Half Day
+        return clock_in_dt >= second_half_start_dt
+
+    except Exception:
+        return False
+
+
 def process_deduction(
     employee,
     leave_type,

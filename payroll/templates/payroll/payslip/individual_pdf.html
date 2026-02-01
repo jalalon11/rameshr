@@ -158,7 +158,7 @@
 						<tbody class="oh-payslip__table-tbody">
 							<tr class="oh-payslip__table-tr">
 								<td
-									class="oh-payslip__table-td"
+									class="oh-payslip__table-td" style="padding-left: 25px;"
 									title="{% trans 'Some deductions will update basic pay before payslip calculation starts, eg: LOP is Deduducted from basic pay if "Deduct leave from basic pay" field is enabled on the contract, and also with the update compensation deduction through' %}"
 								>
 									{% trans "Basic Pay" %}
@@ -169,7 +169,7 @@
 							</tr>
 							{% for allowance in all_allowances %}
 								<tr>
-									<td class="oh-payslip__table-td">{{allowance.title}}</td>
+									<td class="oh-payslip__table-td" style="padding-left: 25px;">{{allowance.title}}</td>
 									<td class="oh-payslip__table-td">
 										{{allowance.amount|floatformat:2|currency_symbol_position}}
 									</td>
@@ -200,14 +200,14 @@
 						</thead>
 						<tbody class="oh-payslip__table-tbody">
 							<tr class="oh-payslip__table-tr">
-								<td class="oh-payslip__table-td">{% trans "Loss of Pay" %}</td>
+								<td class="oh-payslip__table-td" style="padding-left: 25px;">{% trans "Loss of Pay" %}</td>
 								<td class="oh-payslip__table-td">
 									{{loss_of_pay|floatformat:2|currency_symbol_position}}
 								</td>
 							</tr>
 							{% for deduction in basic_pay_deductions %}
 								<tr class="oh-payslip__table-tr">
-									<td class="oh-payslip__table-td">{{deduction.title}}</td>
+									<td class="oh-payslip__table-td" style="padding-left: 25px;">{{deduction.title}}</td>
 									<td class="oh-payslip__table-td">
 										{{deduction.amount|floatformat:2|currency_symbol_position}}
 									</td>
@@ -215,7 +215,7 @@
 							{% endfor %}
 							{% for deduction in gross_pay_deductions %}
 							<tr class="oh-payslip__table-tr">
-								<td class="oh-payslip__table-td">{{deduction.title}}</td>
+								<td class="oh-payslip__table-td" style="padding-left: 25px;">{{deduction.title}}</td>
 									<td class="oh-payslip__table-td">
 										{{deduction.amount|floatformat:2|currency_symbol_position}}
 									</td>
@@ -223,7 +223,7 @@
 							{% endfor %}
 							{% for deduction in pretax_deductions %}
 								<tr class="oh-payslip__table-tr">
-									<td class="oh-payslip__table-td">{{deduction.title}}</td>
+									<td class="oh-payslip__table-td" style="padding-left: 25px;">{{deduction.title}}</td>
 									<td class="oh-payslip__table-td">
 										{{deduction.amount|floatformat:2|currency_symbol_position}}
 									</td>
@@ -231,7 +231,7 @@
 							{% endfor %}
 							{% for deduction in post_tax_deductions %}
 								<tr class="oh-payslip__table-tr">
-									<td class="oh-payslip__table-td">{{deduction.title}}</td>
+									<td class="oh-payslip__table-td" style="padding-left: 25px;">{{deduction.title}}</td>
 									<td class="oh-payslip__table-td">
 										{{deduction.amount|floatformat:2|currency_symbol_position}}
 									</td>
@@ -241,7 +241,7 @@
 
 							{% for deduction in tax_deductions %}
 								<tr class="oh-payslip__table-tr">
-									<td class="oh-payslip__table-td">{{deduction.title}}</td>
+									<td class="oh-payslip__table-td" style="padding-left: 25px;">{{deduction.title}}</td>
 									<td class="oh-payslip__table-td">
 										{{deduction.amount|floatformat:2|currency_symbol_position}}
 									</td>
@@ -249,7 +249,7 @@
 							{% endfor %}
 							{% for deduction in net_deductions %}
 								<tr class="oh-payslip__table-tr">
-									<td class="oh-payslip__table-td">{{deduction.title}}</td>
+									<td class="oh-payslip__table-td" style="padding-left: 25px;">{{deduction.title}}</td>
 									<td class="oh-payslip__table-td">
 										{{deduction.amount|floatformat:2|currency_symbol_position}}
 									</td>

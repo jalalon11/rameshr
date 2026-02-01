@@ -290,12 +290,42 @@ def currency_symbol_position(amount):
 
     currency = symbol.currency_symbol if symbol else "$"
 
+    # Format amount with comma as thousands separator
+    try:
+        formatted_amount = "{:,.2f}".format(float(amount))
+    except (ValueError, TypeError):
+        formatted_amount = amount
+
     if symbol.position == "postfix":
-        currency_symbol = f"{amount} {currency}"
+        currency_symbol = f"{formatted_amount} {currency}"
     else:
-        currency_symbol = f"{currency} {amount}"
+        currency_symbol = f"{currency} {formatted_amount}"
 
     return currency_symbol
+
+
+@register.filter(name="days_to_hours_minutes")
+def days_to_hours_minutes(paid_days, hours_per_day=8):
+    try:
+        paid_days = float(paid_days or 0)
+        hours_per_day = float(hours_per_day or 8)
+        
+        total_hours = paid_days * hours_per_day
+        whole_hours = int(total_hours)
+        remaining_minutes = round((total_hours - whole_hours) * 60)
+        
+        # Handle edge case where rounding makes minutes = 60
+        if remaining_minutes >= 60:
+            whole_hours += 1
+            remaining_minutes = 0
+        
+        if remaining_minutes > 0:
+            minute_label = "minute" if remaining_minutes == 1 else "minutes"
+            return f"{whole_hours} hours & {remaining_minutes} {minute_label}"
+        else:
+            return f"{whole_hours} hours"
+    except (ValueError, TypeError):
+        return f"{paid_days} hours"
 
 
 @register.filter(name="is_check_in_enabled")

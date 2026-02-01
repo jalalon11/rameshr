@@ -99,7 +99,7 @@
         </thead>
         <tbody class="oh-payslip__table-tbody">
             <tr class="oh-payslip__table-tr">
-                <td class="oh-payslip__table-td"
+                <td class="oh-payslip__table-td" style="padding-left: 25px;"
                     title="{% trans 'Some deductions will update basic pay before payslip calculation starts, eg: LOP is Deduducted from basic pay if `Deduct leave from basic pay` field is enabled on the contract, and also with the update compensation deduction through' %}">
                     {% trans "Basic Pay" %}
                 </td>
@@ -109,7 +109,7 @@
             </tr>
             {% for allowance in allowances %}
             <tr>
-                <td class="oh-payslip__table-td">{{allowance.title}}</td>
+                <td class="oh-payslip__table-td" style="padding-left: 25px;">{{allowance.title}}</td>
                 <td class="oh-payslip__table-td">
                     {{allowance.amount|floatformat:2|currency_symbol_position}}
                 </td>
@@ -150,7 +150,7 @@
         </thead>
         <tbody class="oh-payslip__table-tbody">
             <tr class="oh-payslip__table-tr">
-                <td class="oh-payslip__table-td oh-label__info">
+                <td class="oh-payslip__table-td oh-label__info" style="padding-left: 25px;">
                     {% trans "Loss of Pay" %}
                     <span class="oh-info mb-1"
                         title="{% trans 'Deductions from basic pay including: Undertime, Late, and Unpaid Leaves. This amount is not included in Total Deductions as it is already deducted from the basic pay.' %}"></span>
@@ -195,7 +195,7 @@
             {% endfor %}
             {% for deduction in pretax_deductions %}
             <tr class="oh-payslip__table-tr">
-                <td class="oh-payslip__table-td">{{deduction.title}}</td>
+                <td class="oh-payslip__table-td" style="padding-left: 25px;">{{deduction.title}}</td>
                 <td class="oh-payslip__table-td">
                     {{deduction.amount|floatformat:2|currency_symbol_position}}
                 </td>
@@ -203,7 +203,7 @@
             {% endfor %}
             {% for deduction in post_tax_deductions %}
             <tr class="oh-payslip__table-tr">
-                <td class="oh-payslip__table-td">{{deduction.title}}</td>
+                <td class="oh-payslip__table-td" style="padding-left: 25px;">{{deduction.title}}</td>
                 <td class="oh-payslip__table-td">
                     {{deduction.amount|floatformat:2|currency_symbol_position}}
                 </td>
@@ -211,7 +211,7 @@
             {% endfor %}
             {% for deduction in tax_deductions %}
             <tr class="oh-payslip__table-tr">
-                <td class="oh-payslip__table-td">{{deduction.title}}</td>
+                <td class="oh-payslip__table-td" style="padding-left: 25px;">{{deduction.title}}</td>
                 <td class="oh-payslip__table-td">
                     {{deduction.amount|floatformat:2|currency_symbol_position}}
                 </td>
@@ -248,6 +248,206 @@
     </table>
 </div>
 <!-- End of Payslip Table -->
+
+<!-- Calculation Breakdown Section (Dropdown) -->
+<div class="oh-payslip__table-container" style="margin-top: 1rem;">
+    <details style="background-color: #f8f9fa; border-radius: 10px; border: 1px solid #dee2e6;">
+        <summary style="padding: 15px; cursor: pointer; font-weight: 600; color: #495057; font-size: 1rem; list-style: none; display: flex; align-items: center; justify-content: space-between;">
+            <span>
+                <ion-icon name="calculator-outline" style="margin-right: 5px;"></ion-icon>
+                {% trans "Calculation Breakdown" %}
+            </span>
+            <ion-icon name="chevron-down-outline" class="breakdown-chevron" style="transition: transform 0.2s;"></ion-icon>
+        </summary>
+        <div style="padding: 0 15px 15px 15px;">
+            <!-- Two Column Layout -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                
+                <!-- LEFT COLUMN - Calculation Details -->
+                <div>
+                    <!-- Rate Calculation -->
+                    <div style="margin-bottom: 15px; padding: 10px; background-color: #e3f2fd; border-radius: 5px; border-left: 4px solid #2196f3;">
+                        <h4 style="font-size: 0.9rem; color: #1565c0; margin-bottom: 8px;">
+                            <ion-icon name="cash-outline" style="margin-right: 5px;"></ion-icon>
+                            {% trans "Rate Calculation" %}
+                        </h4>
+                        <table style="width: 100%; font-size: 0.85rem;">
+                            <tr>
+                                <td style="padding: 4px 0; color: #495057;">{% trans "Hourly Rate" %}</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 500;">{{ hourly_rate|default:contract_wage|floatformat:2|currency_symbol_position }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px 0; color: #495057;">{% trans "Min Work Hours/Day" %}</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 500;">{{ min_work_hours|default:"8"|floatformat:2 }} {% trans "hrs" %}</td>
+                            </tr>
+                            <tr style="border-top: 1px dashed #90caf9;">
+                                <td style="padding: 6px 0; color: #1565c0; font-weight: 600;">{% trans "Daily Rate" %}</td>
+                                <td style="padding: 6px 0; text-align: right; font-weight: 600; color: #1565c0;">{{ daily_rate|floatformat:2|currency_symbol_position }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <!-- Expected Full Pay Section -->
+                    <div style="margin-bottom: 15px; padding: 10px; background-color: #e8f5e9; border-radius: 5px; border-left: 4px solid #4caf50;">
+                        <h4 style="font-size: 0.9rem; color: #2e7d32; margin-bottom: 8px;">
+                            <ion-icon name="wallet-outline" style="margin-right: 5px;"></ion-icon>
+                            {% trans "Expected Full Pay" %}
+                        </h4>
+                        <table style="width: 100%; font-size: 0.85rem;">
+                            <tr>
+                                <td style="padding: 4px 0; color: #495057;">{{ daily_rate|floatformat:2|currency_symbol_position }} × {{ total_working_days|default_if_none:0|floatformat:0 }} {% trans "days" %}</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 600; color: #2e7d32;">{{ expected_full_pay|floatformat:2|currency_symbol_position }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+<!-- Holidays Section -->
+                    <div style="margin-bottom: 10px; padding: 10px; background-color: #fff3e0; border-radius: 5px; border-left: 4px solid #ff9800;">
+                        <details style="margin: 0;">
+                            <summary style="cursor: pointer; font-size: 0.9rem; color: #e65100; font-weight: 500; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                                <span>
+                                    <ion-icon name="sunny-outline" style="margin-right: 5px;"></ion-icon>
+                                    {% trans "Holidays" %}
+                                </span>
+                                <span style="background-color: #ff9800; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem;">{{ holidays|length|default:0 }}</span>
+                            </summary>
+                            {% if holidays %}
+                            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #ffcc80;">
+                                <ul style="margin: 0; padding-left: 20px; font-size: 0.8rem; color: #6c757d;">
+                                    {% for holiday in holidays %}
+                                    <li>{{ holiday|date:"M d, Y (D)" }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </details>
+                    </div>
+                    
+                    <!-- Weekends/Non-Working Days Section -->
+                    <div style="margin-bottom: 10px; padding: 10px; background-color: #fce4ec; border-radius: 5px; border-left: 4px solid #e91e63;">
+                        <details style="margin: 0;">
+                            <summary style="cursor: pointer; font-size: 0.9rem; color: #c2185b; font-weight: 500; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                                <span>
+                                    <ion-icon name="bed-outline" style="margin-right: 5px;"></ion-icon>
+                                    {% trans "Non-Working Days" %}
+                                </span>
+                                <span style="background-color: #e91e63; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem;">{{ weekends|length|default:0 }}</span>
+                            </summary>
+                            {% if weekends %}
+                            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #f48fb1;">
+                                <ul style="margin: 0; padding-left: 20px; font-size: 0.8rem; color: #6c757d; columns: 2;">
+                                    {% for weekend in weekends %}
+                                    <li>{{ weekend|date:"M d (D)" }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </details>
+                    </div>
+                </div>
+                
+                <!-- RIGHT COLUMN - Days & Schedule -->
+                <div>
+                    <!-- Amount Breakdown -->
+                    <div style="padding: 10px; background-color: #fff; border-radius: 5px; border: 1px solid #dee2e6;">
+                        <h4 style="font-size: 0.9rem; color: #6c757d; margin-bottom: 8px;">
+                            <ion-icon name="receipt-outline" style="margin-right: 5px;"></ion-icon>
+                            {% trans "Amount Breakdown" %}
+                        </h4>
+                        <table style="width: 100%; font-size: 0.85rem;">
+                            <tr>
+                                <td style="padding: 4px 0; color: #495057;">{% trans "Expected Full Pay" %}</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 500;">{{ expected_full_pay|floatformat:2|currency_symbol_position }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px 0; color: #dc3545;">{% trans "Loss of Pay" %}</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 500; color: #dc3545;">- {{ loss_of_pay|floatformat:2|currency_symbol_position }}</td>
+                            </tr>
+                            <tr style="border-top: 1px dashed #dee2e6;">
+                                <td style="padding: 6px 0; color: #495057; font-weight: 600;">{% trans "Basic Pay" %}</td>
+                                <td style="padding: 6px 0; text-align: right; font-weight: 600;">{{ basic_pay|floatformat:2|currency_symbol_position }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <!-- Days Breakdown -->
+                    <div style="margin-bottom: 15px; padding: 10px; background-color: #fff; border-radius: 5px; border: 1px solid #dee2e6;">
+                        <h4 style="font-size: 0.9rem; color: #6c757d; margin-bottom: 8px;">
+                            <ion-icon name="calendar-outline" style="margin-right: 5px;"></ion-icon>
+                            {% trans "Days Breakdown" %}
+                        </h4>
+                        <table style="width: 100%; font-size: 0.85rem;">
+                            <tr>
+                                <td style="padding: 4px 0; color: #495057;">{% trans "Total Working Days" %}</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 500;">{{ total_working_days|default_if_none:0|floatformat:0 }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px 0; color: #28a745;">{% trans "Paid Days" %}</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 500; color: #28a745;">{{ paid_days|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px 0; color: #dc3545;">{% trans "LOP Days (Unpaid)" %}</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 500; color: #dc3545;">{{ unpaid_days|floatformat:2 }}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- LOP Breakdown Section -->
+                    {% if loss_of_pay and loss_of_pay > 0 %}
+                    <div style="margin-top: 5px; padding: 10px; background-color: #fff; border-radius: 5px; border: 1px solid #dee2e6;">
+                        <h4 style="font-size: 0.9rem; color: #6c757d; margin-bottom: 8px;">
+                            <ion-icon name="remove-circle-outline" style="margin-right: 5px;"></ion-icon>
+                            {% trans "LOP Breakdown" %}
+                        </h4>
+                        <table style="width: 100%; font-size: 0.85rem;">
+                            <tr>
+                                <td style="padding: 4px 0; color: #495057;">{% trans "Absent Days" %}</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 500;">{{ absent_days|default:0|floatformat:2 }} {% trans "days" %}</td>
+                            </tr>
+                            <tr style="font-size: 0.8rem; color: #999;">
+                                <td style="padding: 0 0 4px 10px;">{{ absent_days|default:0|floatformat:2 }} × {{ daily_rate|floatformat:2|currency_symbol_position }}</td>
+                                <td style="padding: 0 0 4px 0; text-align: right; color: #dc3545;">= {{ absent_deduction|default:0|floatformat:2|currency_symbol_position }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px 0; color: #495057;">{% trans "Undertime/Late" %}</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 500;">{{ undertime_hours|default:0|floatformat:2 }} {% trans "hrs" %}</td>
+                            </tr>
+                            <tr style="font-size: 0.8rem; color: #999;">
+                                <td style="padding: 0 0 4px 10px;">{{ undertime_hours|default:0|floatformat:2 }} × {{ hourly_rate|floatformat:2|currency_symbol_position }}</td>
+                                <td style="padding: 0 0 4px 0; text-align: right; color: #ff9800;">= {{ undertime_deduction|default:0|floatformat:2|currency_symbol_position }}</td>
+                            </tr>
+                            <tr style="border-top: 1px dashed #dee2e6;">
+                                <td style="padding: 6px 0; color: #dc3545; font-weight: 600;">{% trans "Total Loss of Pay" %}</td>
+                                <td style="padding: 6px 0; text-align: right; font-weight: 600; color: #dc3545;">{{ loss_of_pay|floatformat:2|currency_symbol_position }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Formula -->
+            <div style="margin-top: 15px; padding: 10px; background-color: #e9ecef; border-radius: 5px; font-size: 0.8rem; color: #6c757d;">
+                <strong>{% trans "Formula" %}:</strong><br>
+                {% trans "Daily Rate" %} = {% trans "Hourly Rate" %} × {% trans "Minimum Work Hours" %}<br>
+                {% trans "Loss of Pay" %} = ({% trans "Absent Days" %} × {% trans "Daily Rate" %}) + ({% trans "Undertime Hours" %} × {% trans "Hourly Rate" %})<br>
+                {% trans "Basic Pay" %} = ({% trans "Total Working Days" %} × {% trans "Daily Rate" %}) - {% trans "Loss of Pay" %}<br>
+                {% trans "Net Pay" %} = {% trans "Gross Pay" %} - {% trans "Total Deductions" %}
+            </div>
+        </div>
+    </details>
+</div>
+<style>
+    details[open] .breakdown-chevron {
+        transform: rotate(180deg);
+    }
+    details[open] .lop-chevron {
+        transform: rotate(180deg);
+    }
+    details summary::-webkit-details-marker {
+        display: none;
+    }
+</style>
+<!-- End of Calculation Breakdown -->
 
 <!-- Payslip Payable -->
 <div class="oh-payslip__net-payable">

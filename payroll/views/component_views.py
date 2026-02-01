@@ -124,6 +124,22 @@ def payroll_calculation(employee, start_date, end_date):
     loss_of_pay = basic_pay_details["loss_of_pay"]
     paid_days = basic_pay_details["paid_days"]
     unpaid_days = basic_pay_details["unpaid_days"]
+    
+    # Additional breakdown details
+    total_working_days = basic_pay_details.get("total_working_days", paid_days + unpaid_days)
+    hourly_rate = basic_pay_details.get("hourly_rate", contract_wage)
+    min_work_hours = basic_pay_details.get("min_work_hours", 8.0)
+    daily_rate = basic_pay_details.get("daily_rate", hourly_rate * min_work_hours)
+    expected_full_pay = basic_pay_details.get("expected_full_pay", daily_rate * total_working_days)
+    holidays = basic_pay_details.get("holidays", [])
+    weekends = basic_pay_details.get("weekends", [])
+    absent_days = basic_pay_details.get("absent_days", 0)
+    
+    # LOP breakdown details
+    absent_deduction = basic_pay_details.get("absent_deduction", 0)
+    undertime_hours = basic_pay_details.get("undertime_hours", 0)
+    undertime_days = basic_pay_details.get("undertime_days", 0)
+    undertime_deduction = basic_pay_details.get("undertime_deduction", 0)
 
     working_days_details = basic_pay_details["month_data"]
 
@@ -237,11 +253,28 @@ def payroll_calculation(employee, start_date, end_date):
         "start_date": start_date,
         "end_date": end_date,
         "range": f"{start_date.strftime('%b %d %Y')} - {end_date.strftime('%b %d %Y')}",
+        # Breakdown details
+        "total_working_days": total_working_days,
+        "hourly_rate": hourly_rate,
+        "min_work_hours": min_work_hours,
+        "daily_rate": daily_rate,
+        "expected_full_pay": expected_full_pay,
+        "holidays": holidays,
+        "weekends": weekends,
+        "absent_days": absent_days,
+        # LOP breakdown details
+        "absent_deduction": absent_deduction,
+        "undertime_hours": undertime_hours,
+        "undertime_days": undertime_days,
+        "undertime_deduction": undertime_deduction,
     }
     data_to_json = payslip_data.copy()
     data_to_json["employee"] = employee.id
     data_to_json["start_date"] = start_date.strftime("%Y-%m-%d")
     data_to_json["end_date"] = end_date.strftime("%Y-%m-%d")
+    # Convert date objects to strings for JSON serialization
+    data_to_json["holidays"] = [d.strftime("%Y-%m-%d") for d in holidays] if holidays else []
+    data_to_json["weekends"] = [d.strftime("%Y-%m-%d") for d in weekends] if weekends else []
     json_data = json.dumps(data_to_json)
 
     payslip_data["json_data"] = json_data

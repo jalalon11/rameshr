@@ -5801,7 +5801,10 @@ def get_employee_attendance_with_undertime(request):
         
         # 2. Get half-day absences from WorkRecords
         # For half-day records, also calculate late minutes based on clock-in vs shift start
-        from leave.services.leave_credit_deduction import get_attendance_late_minutes
+        from leave.services.leave_credit_deduction import (
+            get_attendance_late_minutes,
+            is_half_day_arrival,
+        )
         
         halfday_records = WorkRecords.objects.filter(
             employee_id=employee,
@@ -5823,12 +5826,18 @@ def get_employee_attendance_with_undertime(request):
                     mins = int(late_minutes % 60)
                     late_str = f"{hours}h {mins}m" if hours else f"{mins} min"
                     
+                    # Determine label based on shift schedule
+                    # "Half Day" if clock-in is after shift midpoint (e.g., 1PM for 8AM-5PM shift)
+                    type_label = (
+                        "Half Day" if is_half_day_arrival(wr.attendance_id) else "Late"
+                    )
+
                     records.append({
                         "attendance_id": wr.attendance_id.id,
                         "work_record_id": wr.id,
                         "date": wr.date.strftime("%Y-%m-%d"),
                         "date_display": wr.date.strftime("%b %d, %Y"),
-                        "type": "Half Day",
+                        "type": type_label,
                         "undertime_minutes": round(late_minutes, 1),
                         "undertime_display": late_str,
                         "credits": calculate_credits(late_minutes),
@@ -5840,7 +5849,11 @@ def get_employee_attendance_with_undertime(request):
         
         # 3. Get attendance records with late arrivals
         # Import the new late minutes function
-        from leave.services.leave_credit_deduction import get_attendance_late_minutes
+        # (Already imported in step 2, but repeated here for safety if section 2 is empty)
+        from leave.services.leave_credit_deduction import (
+            get_attendance_late_minutes,
+            is_half_day_arrival,
+        )
         
         attendances = Attendance.objects.filter(
             employee_id=employee,
@@ -5869,14 +5882,20 @@ def get_employee_attendance_with_undertime(request):
                 mins = int(late_minutes % 60)
                 late_str = f"{hours}h {mins}m" if hours else f"{mins} min"
                 
-                is_processed = att.id in processed_att_ids or att.attendance_date in processed_dates
-                
+                is_processed = (
+                    att.id in processed_att_ids or att.attendance_date in processed_dates
+                )
+
+                # Determine type label based on shift schedule
+                # "Half Day" if clock-in is after shift midpoint (e.g., 1PM for 8AM-5PM shift)
+                type_label = "Half Day" if is_half_day_arrival(att) else "Late"
+
                 records.append({
                     "attendance_id": att.id,
                     "work_record_id": None,
                     "date": att.attendance_date.strftime("%Y-%m-%d"),
                     "date_display": att.attendance_date.strftime("%b %d, %Y"),
-                    "type": "Late",
+                    "type": type_label,
                     "undertime_minutes": round(late_minutes, 1),
                     "undertime_display": late_str,
                     "credits": calculate_credits(late_minutes),
