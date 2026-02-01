@@ -406,8 +406,11 @@ def hourly_computation(employee, wage, start_date, end_date):
         first_att = regular_attendances[0]
         min_hour_str = first_att.minimum_hour
         if min_hour_str and ':' in str(min_hour_str):
-            hours, minutes = map(int, str(min_hour_str).split(':'))
-            min_work_hours = hours + minutes / 60
+            time_parts = str(min_hour_str).split(':')
+            hours = int(time_parts[0])
+            minutes = int(time_parts[1]) if len(time_parts) > 1 else 0
+            seconds = int(time_parts[2]) if len(time_parts) > 2 else 0
+            min_work_hours = hours + minutes / 60 + seconds / 3600
 
     # Calculate undertime in hours for display
     undertime_hours = total_undertime_seconds / 3600

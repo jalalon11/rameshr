@@ -301,48 +301,28 @@
                         </table>
                     </div>
                     
-<!-- Holidays Section -->
-                    <div style="margin-bottom: 10px; padding: 10px; background-color: #fff3e0; border-radius: 5px; border-left: 4px solid #ff9800;">
-                        <details style="margin: 0;">
-                            <summary style="cursor: pointer; font-size: 0.9rem; color: #e65100; font-weight: 500; list-style: none; display: flex; justify-content: space-between; align-items: center;">
-                                <span>
+                    <!-- Holidays & Non-Working Days Section -->
+                    <div style="margin-bottom: 10px; padding: 10px; background-color: #fff; border-radius: 5px; border: 1px solid #dee2e6;">
+                        <h4 style="font-size: 0.9rem; color: #6c757d; margin-bottom: 8px;">
+                            <ion-icon name="calendar-clear-outline" style="margin-right: 5px;"></ion-icon>
+                            {% trans "Non-Working Days Info" %}
+                        </h4>
+                        <table style="width: 100%; font-size: 0.85rem;">
+                            <tr>
+                                <td style="padding: 4px 0; color: #e65100;">
                                     <ion-icon name="sunny-outline" style="margin-right: 5px;"></ion-icon>
                                     {% trans "Holidays" %}
-                                </span>
-                                <span style="background-color: #ff9800; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem;">{{ holidays|length|default:0 }}</span>
-                            </summary>
-                            {% if holidays %}
-                            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #ffcc80;">
-                                <ul style="margin: 0; padding-left: 20px; font-size: 0.8rem; color: #6c757d;">
-                                    {% for holiday in holidays %}
-                                    <li>{{ holiday|date:"M d, Y (D)" }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                            {% endif %}
-                        </details>
-                    </div>
-                    
-                    <!-- Weekends/Non-Working Days Section -->
-                    <div style="margin-bottom: 10px; padding: 10px; background-color: #fce4ec; border-radius: 5px; border-left: 4px solid #e91e63;">
-                        <details style="margin: 0;">
-                            <summary style="cursor: pointer; font-size: 0.9rem; color: #c2185b; font-weight: 500; list-style: none; display: flex; justify-content: space-between; align-items: center;">
-                                <span>
+                                </td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 500; color: #ff9800;">{{ holidays|length|default:0 }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px 0; color: #c2185b;">
                                     <ion-icon name="bed-outline" style="margin-right: 5px;"></ion-icon>
                                     {% trans "Non-Working Days" %}
-                                </span>
-                                <span style="background-color: #e91e63; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem;">{{ weekends|length|default:0 }}</span>
-                            </summary>
-                            {% if weekends %}
-                            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #f48fb1;">
-                                <ul style="margin: 0; padding-left: 20px; font-size: 0.8rem; color: #6c757d; columns: 2;">
-                                    {% for weekend in weekends %}
-                                    <li>{{ weekend|date:"M d (D)" }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                            {% endif %}
-                        </details>
+                                </td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 500; color: #e91e63;">{{ weekends|length|default:0 }}</td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
                 
