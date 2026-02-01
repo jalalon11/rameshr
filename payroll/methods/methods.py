@@ -313,9 +313,12 @@ def hourly_computation(employee, wage, start_date, end_date):
         # Get minimum required hours
         min_hour_str = attendance.minimum_hour
         if min_hour_str and ':' in str(min_hour_str):
-            hours, minutes = map(int, str(min_hour_str).split(':'))
-            min_hours = hours + minutes / 60
-            min_seconds = (hours * 3600) + (minutes * 60)
+            time_parts = str(min_hour_str).split(':')
+            hours = int(time_parts[0])
+            minutes = int(time_parts[1]) if len(time_parts) > 1 else 0
+            seconds = int(time_parts[2]) if len(time_parts) > 2 else 0
+            min_hours = hours + minutes / 60 + seconds / 3600
+            min_seconds = (hours * 3600) + (minutes * 60) + seconds
         else:
             min_hours = 8  # Default to 8 hours if not specified
             min_seconds = 8 * 3600
