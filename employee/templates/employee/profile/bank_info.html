@@ -49,7 +49,12 @@
                 <div class="col-12 col-sm-12 col-md-12 col-lg-6">
                     <label class="oh-label" for="country">{% trans "Country" %}</label>
                     <select name="country" id="country" class="oh-select oh-select-2"
-                        data-selected="{{ bank_form.country.value|default:'' }}">
+                        data-selected="{{ bank_form.instance.country|default:'Philippines' }}">
+                        {% if bank_form.instance.country %}
+                        <option value="{{ bank_form.instance.country }}" selected>{{ bank_form.instance.country }}</option>
+                        {% else %}
+                        <option value="Philippines" selected>Philippines</option>
+                        {% endif %}
                     </select>
                     {{ bank_form.country.errors }}
                 </div>
@@ -57,8 +62,10 @@
                     <div class="oh-input-group">
                         <label class="oh-label">{% trans "State" %}</label>
                         <select name="state" id="state" class="oh-select oh-select-2"
-                            data-selected="{{ bank_form.state.value|default:'' }}">
-
+                            data-selected="{{ bank_form.instance.state|default:'' }}">
+                            {% if bank_form.instance.state %}
+                            <option value="{{ bank_form.instance.state }}" selected>{{ bank_form.instance.state }}</option>
+                            {% endif %}
                         </select>
                         {{ bank_form.state.errors }}
                     </div>

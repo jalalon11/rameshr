@@ -160,11 +160,11 @@
                         </a>
                     {% endif %}
                 {% endif %}
-                {% if request.user|is_reportingmanager or request.user|is_leave_approval_manager or perms.base.add_penaltyaccounts %}
+                {% comment %} {% if request.user|is_reportingmanager or request.user|is_leave_approval_manager or perms.base.add_penaltyaccounts %}
                     <button data-toggle="oh-modal-toggle" data-target="#objectCreateModal" hx-target="#objectCreateModalTarget" hx-get="{% url 'leave-cut-penalty' leave_request.id %}" type="submit" class="oh-btn oh-btn--info w-100" title="Penalty">
                         <ion-icon name="information-circle-outline" role="img" class="md hydrated" aria-label="information circle outline"></ion-icon>
                     </button>
-                {% endif %}
+                {% endif %} {% endcomment %}
                 {% if request.user|is_reportingmanager or perms.leave.change_leaverequest or request.user|is_leave_approval_manager%}
                     {% if leave_request.status != 'rejected' and leave_request.status != 'cancelled' and leave_request.end_date >= current_date %}
                         <a type="submit" data-toggle="oh-modal-toggle"

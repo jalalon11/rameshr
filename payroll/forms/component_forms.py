@@ -807,6 +807,10 @@ class ReimbursementForm(ModelForm):
         self.initial["employee_id"] = self.employee.id if self.employee else None
 
         self.configure_fields()
+        # Remove bonus_encashment from type choices
+        self.fields["type"].choices = [
+            choice for choice in self.fields["type"].choices if choice[0] != "bonus_encashment"
+        ]
 
     def get_employee(self):
         """Resolves employee either from form data or request."""

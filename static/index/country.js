@@ -709,6 +709,10 @@ function populateStates(countryElementId, stateElementId) {
             stateEl.options[stateEl.length] = option;
         }
     }
+    
+    if ($(stateEl).hasClass('select2-hidden-accessible')) {
+        $(stateEl).trigger('change.select2');
+    }
 }
 
 
@@ -731,15 +735,20 @@ function populateCountries(countryElementId, stateElementId) {
         countryEl.options[countryEl.length] = option;
     }
     // # 913
+    if (stateEl) {
+        populateStates(countryElementId, stateElementId);
+    }
+
     countryEl.onchange = function () {
         let selectedValue = this.value;
         this.setAttribute("data-selected", selectedValue);
-    };
-    if (stateEl) {
-        populateStates(countryElementId, stateElementId);
-        countryEl.onchange = function () {
+        if (stateEl) {
             populateStates(countryElementId, stateElementId);
-        };
+        }
+    };
+
+    if ($(countryEl).hasClass('select2-hidden-accessible')) {
+        $(countryEl).trigger('change.select2');
     }
 }
 

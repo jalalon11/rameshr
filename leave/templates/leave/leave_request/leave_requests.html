@@ -101,7 +101,7 @@
                         {% if request.user|is_reportingmanager or perms.leave.change_leaverequest or perms.leave.delete_leaverequest or request.user|is_leave_approval_manager or perms.base.add_penaltyaccounts %}
                             <div class="oh-sticky-table__th" style="width:200px">{% trans "Actions" %}</div>
                         {% endif %}
-                        <div class="oh-sticky-table__th">{% trans "Penalties" %}</div>
+                        {% comment %} <div class="oh-sticky-table__th">{% trans "Penalties" %}</div> {% endcomment %}
                         {% if request.user|is_reportingmanager or perms.leave.change_leaverequest or request.user|is_leave_approval_manager%}
                             <div class="oh-sticky-table__th oh-sticky-table__right">{% trans "Confirmation" %}</div>
                         {% endif %}
@@ -190,11 +190,11 @@
                                 {% if request.user|is_reportingmanager or perms.leave.change_leaverequest or perms.leave.delete_leaverequest or request.user|is_leave_approval_manager or perms.base.add_penaltyaccounts %}
                                     <div class="oh-btn-group">
                                         {% if request.user|is_reportingmanager or perms.base.add_penaltyaccounts or request.user|is_leave_approval_manager %}
-                                            <button data-toggle="oh-modal-toggle" data-target="#penaltyModal" hx-target="#penaltyModalBody"
+                                            {% comment %}<button data-toggle="oh-modal-toggle" data-target="#penaltyModal" hx-target="#penaltyModalBody"
                                                 hx-get="{% url 'leave-cut-penalty' leave_request.id %}?{{pd}}" type='submit'
                                                 class="oh-btn oh-btn--danger-outline oh-btn--light-bkg w-100" title="{% trans 'Penalty' %}">
                                                 <ion-icon name="information-circle-outline"></ion-icon>
-                                            </button>
+                                            </button>{% endcomment %}
                                         {% endif %}
                                         {% if request.user|is_reportingmanager or perms.leave.change_leaverequest or perms.leave.delete_leaverequest or request.user|is_leave_approval_manager%}
                                             {% if request.user|is_reportingmanager or perms.leave.change_leaverequest or request.user|is_leave_approval_manager %}
@@ -222,14 +222,14 @@
                                 {% endif %}
                             </div>
                         {% endif %}
-                        <div class="oh-sticky-table__td" onclick="event.stopPropagation()">
+                        {% comment %}<div class="oh-sticky-table__td" onclick="event.stopPropagation()">
                             {% if leave_request.get_penalties_count %}
                                 <div data-target="#penaltyViewModal" data-toggle="oh-modal-toggle" hx-get="{% url 'view-penalties' %}?leave_request_id={{leave_request.id}}"
                                     hx-target="#penaltyViewModalBody" align="center"
                                     style="background-color: rgba(229, 79, 56, 0.036); border: 2px solid rgb(229, 79, 56); border-radius: 18px; padding: 10px; font-weight: bold; width: 85%;">
                                     {% trans "Penalties" %} :{{leave_request.get_penalties_count}}</div>
                             {% endif %}
-                        </div>
+                        </div>{% endcomment %}
                         {% if request.user|is_reportingmanager or perms.leave.change_leaverequest or request.user|is_leave_approval_manager%}
                             <div class="oh-sticky-table__td oh-sticky-table__right" onclick="event.stopPropagation()">
                                 <div class="oh-btn-group">

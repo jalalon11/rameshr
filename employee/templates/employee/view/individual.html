@@ -368,13 +368,13 @@
 								{% endif %}
 							{% endif %}
 
-							{% if "attendance"|app_installed or "leave"|app_installed %}
+							{% comment %} {% if "attendance"|app_installed or "leave"|app_installed %}
 								{% if perms.attendance.view_penaltyaccount or request.user == employee.employee_user_id %}
 									<li data-cell-index="23" data-cell-title="{% trans " Penalty Account" %}" class="oh-general__tab">
 										<a data-action="general-tab" data-target="#penaltyTarget" id="penalty" class="oh-general__tab-link" role="button">{% trans "Penalty Account" %}</a>
 									</li>
 								{% endif %}
-							{% endif %}
+							{% endif %} {% endcomment %}
 
 							{% if perms.employee.view_historicalemployeeworkinformation or request.user|check_manager:employee %}
 								<li data-cell-index="15" data-cell-title="{% trans 'History' %}" class="oh-general__tab">
@@ -432,7 +432,7 @@
 							</li>
 							{% endif %}
 
-							{% if "payroll"|app_installed %}
+							{% comment %} {% if "payroll"|app_installed %}
 								{% if perms.employee.view_bonuspoint or request.user|check_manager:employee or request.user == employee.employee_user_id %}
 									<li data-cell-index="21" data-cell-title="{% trans 'Bonus' %}" class="oh-general__tab">
 										<a hx-get={% url 'bonus-points-tab' employee.id %} hx-target="#bonus_points_target"
@@ -440,7 +440,7 @@
 											class="oh-general__tab-link" role="button">{% trans "Bonus Points" %}</a>
 									</li>
 								{% endif %}
-							{% endif %}
+							{% endif %} {% endcomment %}
 						</ul>
 						<button
 							hx-get={% url 'bonus-points-tab' employee.id %} hx-target="#bonus_points_target" id="bonus-tab-button" hidden>
@@ -450,9 +450,9 @@
 
 						<div class="oh-general__tab-target oh-profile__info-tab mb-4 d-none" id="shift_target"></div>
 
-						<div class="oh-general__tab-target oh-profile__info-tab mb-4 d-none" id="bonus_points_target">
+						{% comment %} <div class="oh-general__tab-target oh-profile__info-tab mb-4 d-none" id="bonus_points_target">
 							{% include "tabs/bonus_points.html" %}
-						</div>
+						</div> {% endcomment %}
 
 						<div class="oh-general__tab-target oh-profile__info-tab mb-4 d-none" id="note_target">
 							{% include "tabs/note_tab.html" %}
@@ -468,11 +468,11 @@
 							<div class="oh-general__tab-target oh-profile__info-tab mb-4 d-none" id="attendance_target"> </div>
 						{% endif %}
 
-						{% if "attendance"|app_installed or "leave"|app_installed %}
+						{% comment %} {% if "attendance"|app_installed or "leave"|app_installed %}
 							<div class="oh-general__tab-target oh-profile__info-tab mb-4" id="penaltyTarget">
 								{% include 'tabs/penalty_account.html' %}
 							</div>
-						{% endif %}
+						{% endif %} {% endcomment %}
 
 						{% if "pms"|app_installed %}
 							<div class="oh-general__tab-target oh-profile__info-tab mb-4 d-none" id="performance_target"> </div>

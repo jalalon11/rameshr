@@ -292,6 +292,11 @@
                     <th colspan="{{ deduction_col_count }}" class="section-header section-deductions">
                         {% trans "Deductions" %}
                     </th>
+                    {% if calc_col_count > 0 %}
+                    <th colspan="{{ calc_col_count }}" class="section-header" style="background-color: #006400; color: #fff;">
+                        {% trans "Total Calculation" %}
+                    </th>
+                    {% endif %}
                 </tr>
                 <!-- Column Headers Row -->
                 <tr>
@@ -303,6 +308,9 @@
                     {% endfor %}
                     {% for col_name in deduction_headers %}
                     <th class="col-header col-header-deduction">{{ col_name }}</th>
+                    {% endfor %}
+                    {% for col_value, col_name in calc_columns %}
+                    <th class="col-header" style="color: #006400; background-color: #f5f5f5; font-weight: 600; font-size: 8px;">{{ col_name }}</th>
                     {% endfor %}
                 </tr>
             </thead>
@@ -328,6 +336,13 @@
                         {% endwith %}
                     </td>
                     {% endfor %}
+                    {% for col_value, col_name in calc_columns %}
+                    <td class="amount-cell" style="font-weight: 600; background-color: #f9f9f9;">
+                        {% with value=payslip|get_item:col_name %}
+                        {% if value %}{{ value|floatformat:2 }}{% endif %}
+                        {% endwith %}
+                    </td>
+                    {% endfor %}
                 </tr>
                 {% endfor %}
 
@@ -346,6 +361,13 @@
                     {% endfor %}
                     {% for col_name in deduction_headers %}
                     <td class="amount-cell">
+                        {% with value=totals|get_item:col_name %}
+                        {% if value %}{{ value|floatformat:2 }}{% endif %}
+                        {% endwith %}
+                    </td>
+                    {% endfor %}
+                    {% for col_value, col_name in calc_columns %}
+                    <td class="amount-cell" style="font-weight: bold; background-color: #f0f0f0; color: #006400;">
                         {% with value=totals|get_item:col_name %}
                         {% if value %}{{ value|floatformat:2 }}{% endif %}
                         {% endwith %}

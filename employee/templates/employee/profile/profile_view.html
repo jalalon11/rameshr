@@ -192,7 +192,7 @@
 								</li>
 							{% endif %}
 
-							{% if "attendance"|app_installed %}
+							{% comment %} {% if "attendance"|app_installed %}
 							<li data-cell-index="14" data-cell-title="{% trans "Penalty Account" %}" class="oh-general__tab">
 								<a
 								data-action="general-tab"
@@ -203,7 +203,7 @@
 								>{% trans "Penalty Account" %}</a
 								>
 						</li>
-						{% endif %}
+						{% endif %} {% endcomment %}
 
 						{% if "pms"|app_installed %}
 							<li data-cell-index="12" data-cell-title="{% trans 'Performance' %}" class="oh-general__tab">
@@ -232,7 +232,7 @@
 								>
 							</li>
 
-							{% if "payroll"|app_installed %}
+							{% comment %} {% if "payroll"|app_installed %}
 							<li data-cell-index="10" data-cell-title="{% trans 'Bonus Points' %}" class="oh-general__tab">
 								<a
 								hx-get="{% url 'bonus-points-tab' employee.id %}"
@@ -244,7 +244,7 @@
 								>{% trans "Bonus Points" %}</a
 								>
 							</li>
-							{% endif %}
+							{% endif %} {% endcomment %}
 
 							{% if "recruitment"|app_installed %}
 								<li data-cell-index="20" data-cell-title="{% trans "Interview" %}" class="oh-general__tab">
@@ -278,11 +278,11 @@
 
 						<div class="oh-general__tab-target oh-profile__info-tab mb-4" id="personal_target" > </div>
 
-						{% if "attendance"|app_installed %}
+						{% comment %} {% if "attendance"|app_installed %}
 							<div class="oh-general__tab-target oh-profile__info-tab mb-4" id="penaltyTarget">
 								{% include 'tabs/penalty_account.html' %}
 							</div>
-						{% endif %}
+						{% endif %} {% endcomment %}
 
 						{% if "payroll"|app_installed %}
 							<div class="oh-general__tab-target oh-profile__info-tab mb-4 d-none" id="payroll">
@@ -295,11 +295,11 @@
 							</div>
 						{% endif %}
 
-						{% if "payroll"|app_installed %}
+						{% comment %} {% if "payroll"|app_installed %}
 						<div class="oh-general__tab-target oh-profile__info-tab mb-4 d-none" id="bonus_points_target">
 							{% include "tabs/bonus_points.html" %}
 						</div>
-						{% endif %}
+						{% endif %} {% endcomment %}
 
 						<div class="oh-general__tab-target oh-profile__info-tab mt-3 mb-4 d-none" id="resignation_target">
 							{% include "tabs/resignation.html" %}

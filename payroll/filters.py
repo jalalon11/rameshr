@@ -441,6 +441,15 @@ class ReimbursementFilter(FilterSet):
             "employee_id__employee_work_info__reporting_manager_id",
         ]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if "type" in self.form.fields:
+            self.form.fields["type"].choices = [
+                choice
+                for choice in self.form.fields["type"].choices
+                if choice[0] != "bonus_encashment"
+            ]
+
 
 class ContractReGroup:
     """

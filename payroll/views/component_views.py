@@ -2223,7 +2223,16 @@ def payslip_detailed_export(request):
     deduction_col_count = len(deductions_header)
     
     # Separate basic columns from selected_columns
-    basic_columns = selected_columns[:basic_col_count]
+    raw_basic_columns = selected_columns[:basic_col_count]
+    
+    # Extract Total Calculation columns (Gross Pay, Net Pay) to move them to the far right
+    calc_col_names = ["Gross Pay", "Net Pay"]
+    calc_columns = [col for col in raw_basic_columns if col[1] in calc_col_names]
+    basic_columns = [col for col in raw_basic_columns if col[1] not in calc_col_names]
+    
+    # Recalculate counts
+    basic_col_count = len(basic_columns)
+    calc_col_count = len(calc_columns)
     
     # Get totals row (last item in payslips_data)
     totals = payslips_data.pop() if payslips_data else {}
@@ -2236,11 +2245,13 @@ def payslip_detailed_export(request):
         "payslips_data": payslips_data,
         "totals": totals,
         "basic_columns": basic_columns,
+        "calc_columns": calc_columns,
         "allowance_headers": allowances_header,
         "deduction_headers": deductions_header,
         "basic_col_count": basic_col_count,
         "allowance_col_count": allowance_col_count,
         "deduction_col_count": deduction_col_count,
+        "calc_col_count": calc_col_count,
         "company": company,
         "start_date": start_date,
         "end_date": end_date,
