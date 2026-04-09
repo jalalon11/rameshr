@@ -13,9 +13,11 @@
 {% endif %}
 
 
+{% comment %}
 {% if "offboarding"|app_installed and perms.offboarding.change_offboardinggeneralsetting %}
     {% include "offboarding/settings/settings.html" %}
 {% endif %}
+{% endcomment %}
 
 {% if "attendance"|app_installed and perms.attendance.change_attendancegeneralsetting %}
     {% include "attendance/settings/settings.html" %}
@@ -30,13 +32,11 @@
 {% endif %}
 
 
-{% comment %}
 {% if "payroll"|app_installed %}
     {% if perms.payroll.change_encashmentgeneralsetting %}
         {% include "settings/encashment_settings.html" %}
     {% endif %}
 {% endif %}
-{% endcomment %}
 
 {% if perms.base.view_historytrackingfields %}
     {% include "base/audit_tag/history_tracking_fields.html" %}
