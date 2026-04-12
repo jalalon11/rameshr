@@ -1,0 +1,6 @@
+ui: refine module sidebars and UI nomenclature
+
+- Recruitment: Hid the dashboard link in the sidebar and renamed 'Recruitment Pipeline' to 'Recruitment'.
+- Attendance: Hid the dashboard link in the sidebar. Renamed all occurrences of 'Late Come Early Out' to 'Late In/Early Out' (including models, views, and template variables) for better clarity and consistency.
+- Payroll: Changed the 'Signature' designation on the Payslip PDF report to 'Office In-Charge'.
+- Landing Page: Updated the landing page header title, footer and slogan content.

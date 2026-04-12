@@ -20,11 +20,7 @@ IMG_SRC = "images/ui/recruitment.svg"
 
 SUBMENUS = [
     {
-        "menu": _("Dashboard"),
-        "redirect": reverse("recruitment-dashboard"),
-    },
-    {
-        "menu": _("Recruitment Pipeline"),
+        "menu": _("Recruitment"),
         "redirect": reverse("pipeline"),
         "accessibility": "recruitment.sidebar.pipeline_accessibility",
     },

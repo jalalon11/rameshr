@@ -2476,7 +2476,7 @@ def enable_disable_tracking_late_come_early_out(request):
         tracking.save()
         message = _("enabled") if enable else _("disabled")
         messages.success(
-            request, _("Tracking late come early out {} successfully").format(message)
+            request, _("Tracking late in early out {} successfully").format(message)
         )
     return HttpResponse("<script>window.location.reload()</script>")
 

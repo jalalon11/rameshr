@@ -765,7 +765,7 @@ class AttendanceLateComeEarlyOut(HorillaModel):
     """
 
     choices = [
-        ("late_come", _("Late Come")),
+        ("late_come", _("Late In")),
         ("early_out", _("Early Out")),
     ]
 
