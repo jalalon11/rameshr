@@ -416,9 +416,10 @@
         $(anchorElement).parent().find('#newTab').hide();
     }
 
-    var w = c.width = window.innerWidth,
-        h = c.height = window.innerHeight,
-        ctx = c.getContext('2d'),
+    if (typeof c !== 'undefined') {
+        var w = c.width = window.innerWidth,
+            h = c.height = window.innerHeight,
+            ctx = c.getContext('2d'),
 
         hw = w / 2, // half-width
         hh = h / 2,
@@ -789,8 +790,8 @@
         hh = h / 2;
 
         ctx.font = opts.charSize + 'px Verdana';
-    })
-
+    });
+    }
 </script>
 <script src="{% static 'build/js/dashboardDriver.js' %}"></script>
 

@@ -5,6 +5,7 @@ This module is used register endpoints to the check-in check-out functionalities
 """
 
 import ipaddress
+import json
 import logging
 
 logger = logging.getLogger(__name__)
@@ -301,7 +302,7 @@ def clock_in(request):
                         # and current time is still within break period
                         if time_diff <= 120 and current_datetime < break_end_time:
                             remaining_minutes = int((break_end_time - current_datetime).total_seconds() / 60)
-                            return HttpResponse(
+                            response = HttpResponse(
                                 f"""
                                 <button class="oh-btn oh-btn--secondary check-out" disabled
                                     style="cursor: not-allowed; opacity: 0.6;">
@@ -311,6 +312,19 @@ def clock_in(request):
                                 </button>
                                 """
                             )
+                            response["HX-Trigger"] = json.dumps(
+                                {
+                                    "showToast": {
+                                        "message": str(
+                                            _(
+                                                "Break Time - Check In Disabled ({remaining_minutes} min/s remaining)"
+                                            ).format(remaining_minutes=remaining_minutes)
+                                        ),
+                                        "type": "warning",
+                                    }
+                                }
+                            )
+                            return response
             
             if start_time_sec > end_time_sec:
                 # night shift
@@ -364,7 +378,7 @@ def clock_in(request):
                 mouse_in = """ onmouseenter = "$(this).find('span').show();$(this).find('.time-runner').hide();" """
                 mouse_out = """ onmouseleave = "$(this).find('span').hide();$(this).find('.time-runner').show();" """
 
-            return HttpResponse(
+            response = HttpResponse(
                 """
                 <button class="oh-btn oh-btn--warning-outline check-in mr-2"
                 {mouse_in}
@@ -386,11 +400,16 @@ def clock_in(request):
                     mouse_out=mouse_out,
                 )
             )
-        return HttpResponse(
+            messages.success(request, _("Checked in successfully"))
+            response.content += b'<script>reloadMessage();</script>'
+            return response
+        messages.error(
+            request,
             _(
                 "You Don't have work information filled or your employee detail neither entered "
-            )
+            ),
         )
+        return HttpResponse('<script>reloadMessage();</script>')
     else:
         messages.error(request, _("Check in/Check out feature is not enabled."))
         return HttpResponse("<script>location.reload();</script>")
@@ -570,6 +589,9 @@ def clock_out(request):
         attendance = clock_out_attendance_and_activity(
             employee=employee, date_today=date_today, now=now, out_datetime=datetime_now
         )
+        if attendance is None:
+            messages.warning(request, _("You already clocked out."))
+            return HttpResponse("<script>reloadMessage();</script>")
         if attendance:
             early_out_instance = attendance.late_come_early_out.filter(type="early_out")
             is_night_shift = attendance.is_night_shift()
@@ -622,7 +644,7 @@ def clock_out(request):
             """
             mouse_in = """ onmouseenter="$(this).find('div.at-work-seconds').hide();$(this).find('span').show();" """
             mouse_out = """onmouseleave="$(this).find('div.at-work-seconds').show();$(this).find('span').hide();" """
-        return HttpResponse(
+        response = HttpResponse(
             """
                 <button class="oh-btn oh-btn--success-outline mr-2"
                 {mouse_in}
@@ -644,6 +666,9 @@ def clock_out(request):
                 mouse_out=mouse_out,
             )
         )
+        messages.warning(request, _("Checked out successfully"))
+        response.content += b'<script>reloadMessage();</script>'
+        return response
     else:
         messages.error(request, _("Check in/Check out feature is not enabled."))
         return HttpResponse("<script>location.reload();</script>")
