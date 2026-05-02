@@ -651,6 +651,10 @@ class PolicyAPIView(APIView):
                 policies = Policy.objects.filter(title__icontains=search)
             else:
                 policies = Policy.objects.all()
+
+            if not request.user.has_perm("employee.view_policy"):
+                policies = policies.filter(is_active=True)
+
             serializer = PolicySerializer(policies, many=True)
             paginator = PageNumberPagination()
             page = paginator.paginate_queryset(policies, request)

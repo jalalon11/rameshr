@@ -11,12 +11,13 @@
         <div class="oh-sticky-table__table oh-table--sortable">
             <div class="oh-sticky-table__tbody">
                 {% for announcement in announcements %}
-                    <div class="oh-sticky-table__tr" draggable="true">
+                    <div class="oh-sticky-table__tr" draggable="true"
+                        hx-on:click="$('#objectDetailsModal').addClass('oh-modal--show');"
+                        hx-get="{% url 'announcement-single-view' announcement.id %}?instance_ids={{instance_ids}}"
+                        hx-target="#objectDetailsModalTarget" onclick="closeNew(this)"
+                        style="cursor: pointer;">
                         <div class="announcement_title">
-                            <a class="oh-profile oh-profile--md" style="text-decoration:none;"
-                                hx-on:click="$('#objectDetailsModal').addClass('oh-modal--show');"
-                                hx-get="{% url 'announcement-single-view' announcement.id %}?instance_ids={{instance_ids}}"
-                                hx-target="#objectDetailsModalTarget" onclick="closeNew(this)">
+                            <a class="oh-profile oh-profile--md" style="text-decoration:none;">
                                 <div class="oh-profile__avatar mr-1">
                                     <img src="https://ui-avatars.com/api/?name={{announcement.title}}&background=random"
                                         class="oh-profile__image" />

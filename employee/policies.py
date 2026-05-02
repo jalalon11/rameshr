@@ -41,7 +41,7 @@ def view_policies(request):
     """
     policies = Policy.objects.all()
     if not request.user.has_perm("employee.view_policy"):
-        policies = policies.filter(is_visible_to_all=True)
+        policies = policies.filter(is_visible_to_all=True, is_active=True)
     return render(
         request,
         "policies/view_policies.html",
@@ -79,7 +79,7 @@ def search_policies(request):
     """
     policies = PolicyFilter(request.GET).qs
     if not request.user.has_perm("employee.view_policy"):
-        policies = policies.filter(is_visible_to_all=True)
+        policies = policies.filter(is_visible_to_all=True, is_active=True)
     return render(
         request,
         "policies/records.html",
@@ -166,6 +166,21 @@ def get_attachments(request):
     policy = request.GET["policy_id"]
     policy = Policy.objects.get(id=policy)
     return render(request, "policies/attachments.html", {"policy": policy})
+
+
+@login_required
+@permission_required("employee.change_policy")
+def toggle_policy_status(request):
+    """
+    This method is used to toggle the active status of a policy
+    """
+    policy_id = request.GET.get("policy_id")
+    policy = get_object_or_404(Policy, id=policy_id)
+    policy.is_active = not policy.is_active
+    policy.save()
+    status = _("enabled") if policy.is_active else _("disabled")
+    messages.success(request, _("Policy %s successfully.") % status)
+    return search_policies(request)
 
 
 @login_required

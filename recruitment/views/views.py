@@ -708,11 +708,18 @@ def recruitment_archive(request, rec_id):
         recruitment = Recruitment.objects.get(id=rec_id)
         if recruitment.is_active:
             recruitment.is_active = False
+            messages.success(request, _("Recruitment Archived"))
         else:
             recruitment.is_active = True
+            messages.success(request, _("Recruitment Unarchived"))
         recruitment.save()
     except (Recruitment.DoesNotExist, OverflowError):
         messages.error(request, _("Recruitment Does not exists.."))
+    if request.META.get("HTTP_HX_REQUEST") == "true":
+        from recruitment.views.paginator_qry import paginator_qry
+        from recruitment.views.search import recruitment_search
+
+        return recruitment_search(request)
     return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))
 
 

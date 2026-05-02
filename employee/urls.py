@@ -286,6 +286,11 @@ urlpatterns = [
         policies.get_attachments,
         name="get-attachments-policy",
     ),
+    path(
+        "toggle-policy-status",
+        policies.toggle_policy_status,
+        name="toggle-policy-status",
+    ),
     path("file-upload/<int:id>", views.file_upload, name="file-upload"),
     path("view-file/<int:id>", views.view_file, name="view-file"),
     path("document-create/<int:emp_id>", views.document_create, name="document-create"),
