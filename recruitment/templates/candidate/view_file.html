@@ -12,37 +12,39 @@
 			<ion-icon name="attach-outline"></ion-icon>
 		</a>
 		{% if document.document %}
-		<a
-			href="data:{{ content_type }};base64,{{ file_content|base64_encode }}"
-			class="oh-btn oh-btn--info w-100"
-			download="{{document.title}}"
-			title="{% trans 'Download' %}"
-			><ion-icon class="me-1" name="download-outline"></ion-icon
-		></a>
 		{% endif %}
 	</div>
 </div>
 {% if document.document %}
 	<div class="modal-body" {% if document.status == "rejected" %} style="border: 5px solid red;"{% endif %}>
 		<!-- Display the file content based on the file type -->
-		{% if file_extension == 'pdf' or file_extension == 'txt' or file_extension == 'docx' or file_extension == 'xlsx' %}
-		<embed
-			src="data:{{ content_type }};base64,{{ file_content|base64_encode }}"
-			type="{{ content_type }}"
-			width="100%"
-			height="500px"
-		/>
-		{% elif file_extension == 'jpg' or file_extension == 'jpeg' or file_extension == 'png' or file_extension == 'webp' %}
-		<div class="container">
-			<img
-				src="data:{{ content_type }};base64,{{ file_content|base64_encode }}"
-				alt="File Preview"
-				class="img-fluid"
-				style="display: block; width: 100%;height: 500px;"
-			/>
-		</div>
+		{% if file_content %}
+			{% if file_extension == 'pdf' %}
+				<iframe src="{% url 'candidate-serve-file' document.id %}" width="100%" height="500px" style="border: none;"></iframe>
+			{% elif file_extension == 'txt' %}
+				<embed src="{% url 'candidate-serve-file' document.id %}" type="{{ content_type }}" width="100%" height="500px" />
+			{% elif file_extension == 'jpg' or file_extension == 'jpeg' or file_extension == 'png' or file_extension == 'webp' or file_extension == 'gif' %}
+				<div class="container text-center">
+					<img src="{% url 'candidate-serve-file' document.id %}" alt="File Preview" class="img-fluid"
+						style="display: block; width: 100%; height: auto; max-height: 500px; margin: auto;" />
+				</div>
+			{% else %}
+				<div class="oh-not-found text-center">
+					<img style="width: 100px; height: 100px;" src="{% static 'images/ui/document.png' %}" class="mb-3" alt="No preview" />
+					<h3 class="oh-404__subtitle">{% trans "Preview not available for this file type." %}</h3>
+					<p>{% trans "File type: " %} <b>{{ file_extension|upper }}</b></p>
+					<div class="d-flex justify-content-center mt-3">
+						<a href="{% url 'candidate-serve-file' document.id %}" download="{{document.title}}" class="oh-btn oh-btn--primary">
+							<ion-icon name="download-outline" class="me-1"></ion-icon>{% trans "Download" %}
+						</a>
+					</div>
+				</div>
+			{% endif %}
 		{% else %}
-		<p>{% trans "File format not supported for preview." %}</p>
+			<div class="oh-not-found text-center">
+				<img style="width: 150px; height: 150px;" src="{% static 'images/ui/document.png' %}" class="oh-404__image mb-4" alt="File not found" />
+				<h3 class="oh-404__subtitle">{% trans "File not found or could not be read." %}</h3>
+			</div>
 		{% endif %}
 	</div>
 	{% if document.status == 'rejected' %}

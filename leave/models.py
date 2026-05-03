@@ -156,6 +156,19 @@ WEEK_DAYS = [
 ]
 
 
+class LeaveAccess(models.Model):
+    """
+    LeaveAccess model
+    """
+
+    class Meta:
+        """
+        Meta class for Leave module access permission
+        """
+
+        verbose_name = _("Leave Access")
+
+
 class LeaveType(HorillaModel):
     icon = models.ImageField(
         null=True, blank=True, upload_to=upload_path, verbose_name=_("Icon")
@@ -1746,4 +1759,5 @@ class UndertimeLeaveDeduction(HorillaModel):
     
     def __str__(self):
         return f"{self.employee_id} - {self.credits_deducted:.3f} credits on {self.deduction_date}"
+
 

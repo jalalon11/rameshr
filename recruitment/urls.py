@@ -486,6 +486,7 @@ urlpatterns = [
         name="candidate-file-upload",
     ),
     path("candidate-view-file/<int:id>", views.view_file, name="candidate-view-file"),
+    path("candidate-serve-file/<int:id>", views.serve_file, name="candidate-serve-file"),
     path(
         "candidate-document-create/<int:id>",
         views.document_create,

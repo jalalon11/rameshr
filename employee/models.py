@@ -551,6 +551,11 @@ class Employee(models.Model):
             view_ownprofile = Permission.objects.get(codename="view_ownprofile")
             user.user_permissions.add(view_ownprofile)
             user.user_permissions.add(change_ownprofile)
+            try:
+                view_leaveaccess = Permission.objects.get(codename="view_leaveaccess")
+                user.user_permissions.add(view_leaveaccess)
+            except:
+                pass
 
         if not hasattr(self, "employee_work_info"):
             EmployeeWorkInformation.objects.get_or_create(employee_id=self)

@@ -2978,22 +2978,48 @@ def view_file(request, id):
         "document": document_obj,
     }
     if document_obj.document:
-        file_path = document_obj.document.path
-        file_extension = os.path.splitext(file_path)[1][1:].lower()
-
-        content_type = get_content_type(file_extension)
-
         try:
-            with open(file_path, "rb") as file:
-                file_content = file.read()
-        except:
+            file_path = document_obj.document.path
+            file_extension = os.path.splitext(file_path)[1][1:].lower()
+            content_type = get_content_type(file_extension)
+
+            if os.path.exists(file_path):
+                with open(file_path, "rb") as file:
+                    file_content = file.read()
+            else:
+                file_content = None
+        except Exception as e:
+            print(f"Error in recruitment view_file: {e}")
             file_content = None
+            file_extension = None
+            content_type = None
 
         context["file_content"] = file_content
         context["file_extension"] = file_extension
         context["content_type"] = content_type
 
     return render(request, "candidate/view_file.html", context)
+
+
+@login_required
+def serve_file(request, id):
+    """
+    Serve the candidate document file directly to the browser with inline disposition.
+    """
+    document_obj = CandidateDocument.objects.filter(id=id).first()
+    if not document_obj or not document_obj.document:
+        return HttpResponse(_("File not found."), status=404)
+
+    file_path = document_obj.document.path
+    if not os.path.exists(file_path):
+        return HttpResponse(_("File not found on disk."), status=404)
+
+    file_extension = os.path.splitext(file_path)[1][1:].lower()
+    content_type = get_content_type(file_extension)
+
+    response = FileResponse(open(file_path, "rb"), content_type=content_type)
+    response["Content-Disposition"] = f'inline; filename="{os.path.basename(file_path)}"'
+    return response
 
 
 @login_required

@@ -11,6 +11,16 @@ from leave.templatetags.leavefilters import is_compensatory
 
 MENU = trans("Leave")
 IMG_SRC = "images/ui/leave.svg"
+ACCESSIBILITY = "leave.sidebar.leave_accessibility"
+
+
+def leave_accessibility(request, menu, user_perms, *args, **kwargs):
+    return (
+        request.user.has_perm("leave.add_leaveaccess")
+        or request.user.has_perm("leave.view_leaveaccess")
+        or request.user.has_perm("leave.change_leaveaccess")
+        or request.user.has_perm("leave.delete_leaveaccess")
+    )
 
 SUBMENUS = [
     {

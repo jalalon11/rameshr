@@ -293,6 +293,7 @@ urlpatterns = [
     ),
     path("file-upload/<int:id>", views.file_upload, name="file-upload"),
     path("view-file/<int:id>", views.view_file, name="view-file"),
+    path("serve-file/<int:id>", views.serve_file, name="serve-file"),
     path("document-create/<int:emp_id>", views.document_create, name="document-create"),
     path(
         "update-document-title/<int:id>",
