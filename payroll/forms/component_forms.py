@@ -1000,15 +1000,21 @@ class ReimbursementForm(ModelForm):
 
         instance = super().save(commit=commit)
 
-        if attachments:
-            attachment_objs = [
-                ReimbursementMultipleAttachment(attachment=file) for file in attachments
-            ]
-            created_attachments = ReimbursementMultipleAttachment.objects.bulk_create(
-                attachment_objs
-            )
-            multiple_attachment_ids = [obj.pk for obj in created_attachments]
-            instance.other_attachments.add(*multiple_attachment_ids)
+        def save_attachments():
+            if attachments:
+                for file in attachments:
+                    attachment_obj = ReimbursementMultipleAttachment.objects.create(attachment=file)
+                    instance.other_attachments.add(attachment_obj)
+
+        if commit:
+            save_attachments()
+        else:
+            old_save_m2m = getattr(self, "save_m2m", None)
+            def new_save_m2m():
+                if old_save_m2m:
+                    old_save_m2m()
+                save_attachments()
+            self.save_m2m = new_save_m2m
 
         if is_new:
             try:

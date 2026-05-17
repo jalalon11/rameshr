@@ -1837,11 +1837,33 @@ def reimbursement_attachments(request, instance_id):
     """
     This method is used to render all the attachements under the reimbursement object
     """
+    import os
     reimbursement = Reimbursement.objects.get(id=instance_id)
+    attachments = list(reimbursement.other_attachments.all())
+
+    for attachment in attachments:
+        url = attachment.attachment.url.lower()
+        attachment.filename = os.path.basename(attachment.attachment.name)
+        if url.endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp')):
+            attachment.file_type = 'image'
+        elif url.endswith('.pdf'):
+            attachment.file_type = 'pdf'
+        elif url.endswith(('.doc', '.docx')):
+            attachment.file_type = 'word'
+        elif url.endswith(('.xls', '.xlsx')):
+            attachment.file_type = 'excel'
+        else:
+            attachment.file_type = 'other'
+
     return render(
         request,
         "payroll/reimbursement/attachments.html",
-        {"reimbursement": reimbursement},
+        {
+            "reimbursement": reimbursement,
+            "attachments": attachments,
+            "protocol": "https" if request.is_secure() else "http",
+            "host": request.get_host(),
+        },
     )
 
 
